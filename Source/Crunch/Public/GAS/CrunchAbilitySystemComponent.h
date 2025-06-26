@@ -16,8 +16,16 @@ class CRUNCH_API UCrunchAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
+	UCrunchAbilitySystemComponent();
+	
 	void ApplyInitialEffects();
 	void GiveInitialAbilities();
+
+	void AuthApplyGameplayEffect(TSubclassOf<UGameplayEffect> ApplyGE,int32 Level = 1.f);
+	
+	void ApplyFullStat();
+	
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
 	
 private:
 
@@ -25,6 +33,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effect")
 	TArray<TSubclassOf<UGameplayEffect>> InitialEffects;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effect")
+	TSubclassOf<UGameplayEffect> FullStatEffect;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effect")
+	TSubclassOf<UGameplayEffect> DeathEffect;
+	
 	//一些通用的基础能力
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Ability")
 	TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>> BaseAbilities;

@@ -15,7 +15,7 @@ ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->bUsePawnControlRotation = true;
-	
+
 	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
 	ViewCamera->SetupAttachment(CameraBoom);
 
@@ -35,14 +35,13 @@ void ACrunchPlayerCharacter::PawnClientRestart()
 		EnhancedInputSubsystem->ClearAllMappings();
 		EnhancedInputSubsystem->AddMappingContext(IMC_Gameplay, 0);
 	}
-	
 }
 
 void ACrunchPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if (UEnhancedInputComponent* EnhancedInput =  Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInput->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ACrunchPlayerCharacter::Jump);
 		EnhancedInput->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ACrunchPlayerCharacter::HandleLook);
@@ -71,9 +70,9 @@ void ACrunchPlayerCharacter::HandleMove(const FInputActionValue& InputActionValu
 	FVector2D InputVal = InputActionValue.Get<FVector2D>();
 	InputVal.Normalize();
 
-	FVector WorldDirection = FVector::CrossProduct(ViewCamera->GetRightVector(),FVector::UpVector) * InputVal.Y
-							+ViewCamera->GetRightVector() * InputVal.X;
-	
+	FVector WorldDirection = FVector::CrossProduct(ViewCamera->GetRightVector(), FVector::UpVector) * InputVal.Y
+		+ ViewCamera->GetRightVector() * InputVal.X;
+
 	AddMovementInput(WorldDirection);
 }
 
@@ -86,5 +85,21 @@ void ACrunchPlayerCharacter::HandleAbilityInput(const FInputActionValue& InputAc
 	else
 	{
 		GetAbilitySystemComponent()->AbilityLocalInputReleased((int32)AbilityInputID);
+	}
+}
+
+void ACrunchPlayerCharacter::OnDeath()
+{
+	if (APlayerController* OwningPC = GetController<APlayerController>())
+	{
+		DisableInput(OwningPC);
+	}
+}
+
+void ACrunchPlayerCharacter::OnReSpawn()
+{
+	if (APlayerController* OwningPC = GetController<APlayerController>())
+	{
+		EnableInput(OwningPC);
 	}
 }

@@ -3,6 +3,8 @@
 
 #include "GAS/Ability/GA_Combo.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
@@ -107,5 +109,30 @@ void UGA_Combo::TryCommitCombo()
 
 void UGA_Combo::DoDamage(FGameplayEventData Payload)
 {
-	TArray<FHitResult> Result = GetHitResultsFromSweepLocationTargetData(Payload.TargetData, 30.f, true, true);
+	TArray<FHitResult> Result = GetHitResultsFromSweepLocationTargetData(Payload.TargetData, TargetSweepSphereRadius, false, true);
+
+	for (auto& Hit : Result)
+	{
+		FGameplayEffectSpecHandle ComboEffectSpec = MakeOutgoingGameplayEffectSpec(GetComboEffectForCurrentComboName(), GetAbilityLevel());
+		FGameplayEffectContextHandle EffectContextHandle = MakeEffectContext(CurrentSpecHandle, CurrentActorInfo);
+		EffectContextHandle.AddHitResult(Hit);
+		ComboEffectSpec.Data->SetContext(EffectContextHandle);
+		
+		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ComboEffectSpec,
+		                                UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(Hit.GetActor()));
+	}
+}
+
+TSubclassOf<UGameplayEffect> UGA_Combo::GetComboEffectForCurrentComboName() const
+{
+	if (UAnimInstance* OwnerAnimInst = GetActorInfo().SkeletalMeshComponent->GetAnimInstance())
+	{
+		FName CurrentSection = OwnerAnimInst->Montage_GetCurrentSection(ComboMontage);
+		const TSubclassOf<UGameplayEffect> GEClass = ComboEffectMap.FindRef(CurrentSection);
+		if (GEClass)
+		{
+			return GEClass;
+		}
+	}
+	return DefaultDamageEffect;
 }

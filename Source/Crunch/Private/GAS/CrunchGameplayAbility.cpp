@@ -9,6 +9,7 @@ TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetD
                                                                                     bool bIgnoreSelf) const
 {
 	TArray<FHitResult> OutRet;
+	TSet<AActor*> HitActors;
 
 	for (const auto Data : TargetDataHandle.Data)
 	{
@@ -30,9 +31,17 @@ TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetD
 		TArray<FHitResult> OutHits;
 		UKismetSystemLibrary::SphereTraceMultiForObjects(this, StartLoc, EndLoc, SphereRadius,
 		                                                 ObjectTypes, false, IgnoreActors, DrawType, OutHits, false);
-		OutRet.Append(OutHits);
+
+		for (const FHitResult& Hit : OutHits)
+		{
+			if (HitActors.Contains(Hit.GetActor()))
+			{
+				continue; //如果已经命中过这个Actor, 则跳过.
+			}
+			HitActors.Add(Hit.GetActor());
+			OutRet.Add(Hit);
+		}
 	}
-
-
+	
 	return OutRet;
 }

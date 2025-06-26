@@ -64,4 +64,13 @@ private:
 	void HandleMove(const FInputActionValue& InputActionValue);
 
 	void HandleAbilityInput(const FInputActionValue& InputActionValue, ECrunchAbilityInputID AbilityInputID);
+
+
+	/********************************************************
+	 *				Death and ReSpawn
+	 *******************************************************/				
+
+	virtual void OnDeath() override;
+
+	virtual void OnReSpawn() override;
 };

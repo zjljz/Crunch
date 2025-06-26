@@ -23,21 +23,14 @@ public:
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, MaxMana)
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+	//这个函数一般用来限制属性的范围 但是某些情况下 会不触发该函数 还需要再次限制.
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override; 
+
+	//因为GE的Execution 不会触发PreAttributeChange 所以需要在这里再次限制属性范围
+	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 	
-	UFUNCTION()
-	void OnRep_Health(const FGameplayAttributeData& OldVal);
-
-	UFUNCTION()
-	void OnRep_MaxHealth(const FGameplayAttributeData& OldVal);
-
-	UFUNCTION()
-	void OnRep_Mana(const FGameplayAttributeData& OldVal);
-
-	UFUNCTION()
-	void OnRep_MaxMana(const FGameplayAttributeData& OldVal);
-
-
-
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
@@ -50,4 +43,16 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_MaxMana)
 	FGameplayAttributeData MaxMana;
+
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldVal);
+
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldVal);
+
+	UFUNCTION()
+	void OnRep_Mana(const FGameplayAttributeData& OldVal);
+
+	UFUNCTION()
+	void OnRep_MaxMana(const FGameplayAttributeData& OldVal);
 };

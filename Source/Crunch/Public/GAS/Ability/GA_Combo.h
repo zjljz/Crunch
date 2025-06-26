@@ -33,10 +33,21 @@ public:
 	UFUNCTION()
 	void DoDamage(FGameplayEventData Payload);
 	
+	TSubclassOf<UGameplayEffect> GetComboEffectForCurrentComboName() const;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> ComboMontage;
 
 	//下一个Combo的名称.
 	FName NextComboName = NAME_None;
+
+	UPROPERTY(EditAnywhere, Category = "Gameplay Ability")
+	float TargetSweepSphereRadius = 30.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
+	TMap<FName, TSubclassOf<UGameplayEffect>> ComboEffectMap;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
+	TSubclassOf<UGameplayEffect> DefaultDamageEffect;
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/PlayerController.h"
 #include "CrunchPlayerController.generated.h"
 
@@ -12,7 +13,7 @@ class ACrunchPlayerCharacter;
  * 
  */
 UCLASS()
-class CRUNCH_API ACrunchPlayerController : public APlayerController
+class CRUNCH_API ACrunchPlayerController : public APlayerController, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -22,10 +23,10 @@ public:
 
 	//在Client/Listen Server上调用
 	virtual void AcknowledgePossession(APawn* P) override;
-	
-	void SpawnGameplayWidget();
-private:
 
+	void SpawnGameplayWidget();
+
+private:
 	UPROPERTY()
 	TObjectPtr<ACrunchPlayerCharacter> OwnedCharacter;
 
