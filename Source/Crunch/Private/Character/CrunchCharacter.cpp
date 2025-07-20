@@ -3,13 +3,15 @@
 
 #include "Character/CrunchCharacter.h"
 
-#include "MovieSceneTracksComponentTypes.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/CrunchAbilitySystemComponent.h"
 #include "GAS/CrunchAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 #include "Widgets/OverHeadStatsGauge.h"
 
 ACrunchCharacter::ACrunchCharacter()
@@ -24,9 +26,16 @@ ACrunchCharacter::ACrunchCharacter()
 	OverHeadWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidgetComp"));
 	OverHeadWidgetComp->SetupAttachment(RootComponent);
 
-	BindGASChangeDelegate();
+	AIPerceptionStimuliSourceComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("AIPerceptionStimuliSourceComp"));
 
-	MeshRelativeTransform = GetMesh()->GetRelativeTransform();
+	BindGASChangeDelegate();
+}
+
+void ACrunchCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACrunchCharacter, TeamId);
 }
 
 void ACrunchCharacter::BeginPlay()
@@ -34,11 +43,10 @@ void ACrunchCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ConfigureOverHeadWidget();
-}
 
-void ACrunchCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	MeshRelativeTransform = GetMesh()->GetRelativeTransform();
+
+	AIPerceptionStimuliSourceComp->RegisterForSense(UAISense_Sight::StaticClass());
 }
 
 void ACrunchCharacter::PossessedBy(AController* NewController)
@@ -157,6 +165,11 @@ void ACrunchCharacter::SetRagdollEnabled(bool bEnabled)
 
 void ACrunchCharacter::StartDeath()
 {
+	if (CrunchASC)
+	{
+		CrunchASC->CancelAllAbilities();
+	}
+
 	if (DeathMontage)
 	{
 		float MontageDurTime = PlayAnimMontage(DeathMontage);
@@ -175,6 +188,9 @@ void ACrunchCharacter::StartDeath()
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	// 当死亡时 禁用AI感知源.
+	SetAIPerceptionStimuliSourceEnabled(false);
+
 	OnDeath();
 }
 
@@ -182,10 +198,17 @@ void ACrunchCharacter::ReSpawn()
 {
 	SetRagdollEnabled(false);
 
+	SetAIPerceptionStimuliSourceEnabled(true);
+
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
 	SetStatusGaugeEnabled(true);
+
+	if (HasAuthority() && GetController())
+	{
+		SetActorTransform(GetController()->StartSpot->GetActorTransform());
+	}
 
 	if (CrunchASC)
 	{
@@ -200,4 +223,26 @@ void ACrunchCharacter::OnDeath()
 
 void ACrunchCharacter::OnReSpawn()
 {
+}
+
+void ACrunchCharacter::OnRep_TeamId()
+{
+	
+}
+
+void ACrunchCharacter::SetAIPerceptionStimuliSourceEnabled(bool bEnabled)
+{
+	if (!AIPerceptionStimuliSourceComp)
+	{
+		return;
+	}
+
+	if (bEnabled)
+	{
+		AIPerceptionStimuliSourceComp->RegisterWithPerceptionSystem();
+	}
+	else
+	{
+		AIPerceptionStimuliSourceComp->UnregisterFromPerceptionSystem();
+	}
 }

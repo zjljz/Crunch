@@ -5,11 +5,13 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 
-TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereRadius, bool bDrawDebug,
-                                                                                    bool bIgnoreSelf) const
+TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereRadius,
+                                                                                    ETeamAttitude::Type TargetTeam, bool bDrawDebug, bool bIgnoreSelf) const
 {
 	TArray<FHitResult> OutRet;
 	TSet<AActor*> HitActors;
+
+	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
 
 	for (const auto Data : TargetDataHandle.Data)
 	{
@@ -38,10 +40,20 @@ TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetD
 			{
 				continue; //如果已经命中过这个Actor, 则跳过.
 			}
+
+			if (OwnerTeamInterface)
+			{
+				ETeamAttitude::Type OtherActorTeam = OwnerTeamInterface->GetTeamAttitudeTowards(*Hit.GetActor());
+				if (OtherActorTeam != TargetTeam)
+				{
+					continue;
+				}
+			}
+
 			HitActors.Add(Hit.GetActor());
 			OutRet.Add(Hit);
 		}
 	}
-	
+
 	return OutRet;
 }

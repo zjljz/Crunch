@@ -18,6 +18,8 @@ class CRUNCH_API ACrunchPlayerController : public APlayerController, public IGen
 	GENERATED_BODY()
 
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 	//只在Server上调用
 	virtual void OnPossess(APawn* InPawn) override;
 
@@ -35,4 +37,17 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UGameplayWidget> GameplayWidget;
+
+public:
+	/***************************************************
+	 *			Team System
+	 **************************************************/
+
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override { TeamId = NewTeamID; }
+
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
+
+private:
+	UPROPERTY(Replicated)
+	FGenericTeamId TeamId;
 };

@@ -5,22 +5,24 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
 #include "CrunchCharacter.generated.h"
 
+class UAIPerceptionStimuliSourceComponent;
 class UWidgetComponent;
 class UCrunchAttributeSet;
 class UCrunchAbilitySystemComponent;
 
 UCLASS()
-class CRUNCH_API ACrunchCharacter : public ACharacter, public IAbilitySystemInterface
+class CRUNCH_API ACrunchCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
 public:
 	ACrunchCharacter();
 
-	virtual void Tick(float DeltaTime) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	//这个函数只在Server上调用.
 	virtual void PossessedBy(AController* NewController) override;
@@ -90,13 +92,41 @@ private:
 
 	//Mesh相当于Capsule的相对位置.
 	FTransform MeshRelativeTransform;
-	
+
 	// 设置Ragdoll是否启用.
 	void SetRagdollEnabled(bool bEnabled);
-	
+
 	void StartDeath();
 	void ReSpawn();
 
 	virtual void OnDeath();
 	virtual void OnReSpawn();
+
+public:
+	/***************************************************
+	 *           Team System
+	 **************************************************/
+
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override { TeamId = NewTeamID; }
+
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
+
+	UFUNCTION()
+	virtual void OnRep_TeamId();
+	
+private:
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_TeamId)
+	FGenericTeamId TeamId;
+
+
+	/***************************************************
+	 *           AI System
+	 **************************************************/
+
+	// 启动/关闭AI感知组件的感知源.
+	void SetAIPerceptionStimuliSourceEnabled(bool bEnabled);
+	
+	//AI感知组件, 添加了这个组建的Actor 才会被AI的感知系统感知到. --- 默认情况下会感知所有的Pawn 但是在DefaultGame.ini中关闭了该选项.
+	UPROPERTY()
+	TObjectPtr<UAIPerceptionStimuliSourceComponent> AIPerceptionStimuliSourceComp;
 };

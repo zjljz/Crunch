@@ -109,7 +109,7 @@ void UGA_Combo::TryCommitCombo()
 
 void UGA_Combo::DoDamage(FGameplayEventData Payload)
 {
-	TArray<FHitResult> Result = GetHitResultsFromSweepLocationTargetData(Payload.TargetData, TargetSweepSphereRadius, false, true);
+	TArray<FHitResult> Result = GetHitResultsFromSweepLocationTargetData(Payload.TargetData, TargetSweepSphereRadius);
 
 	for (auto& Hit : Result)
 	{

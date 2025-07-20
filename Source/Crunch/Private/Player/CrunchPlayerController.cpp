@@ -4,8 +4,16 @@
 #include "Player/CrunchPlayerController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Net/UnrealNetwork.h"
 #include "Player/CrunchPlayerCharacter.h"
 #include "Widgets/GameplayWidget.h"
+
+void ACrunchPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACrunchPlayerController, TeamId);
+}
 
 void ACrunchPlayerController::OnPossess(APawn* InPawn)
 {
@@ -15,6 +23,7 @@ void ACrunchPlayerController::OnPossess(APawn* InPawn)
 	if (OwnedCharacter)
 	{
 		OwnedCharacter->ServerInit();
+		OwnedCharacter->SetGenericTeamId(TeamId);
 	}
 }
 

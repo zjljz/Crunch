@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "GenericTeamAgentInterface.h"
 #include "CrunchGameplayAbility.generated.h"
 
 /**
@@ -15,6 +16,6 @@ class CRUNCH_API UCrunchGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 
 public:
-	TArray<FHitResult> GetHitResultsFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
-	                                                            float SphereRadius = 30.f, bool bDrawDebug = false, bool bIgnoreSelf = true) const;
+	TArray<FHitResult> GetHitResultsFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereRadius = 30.f,
+	                                                            ETeamAttitude::Type TargetTeam = ETeamAttitude::Hostile, bool bDrawDebug = false, bool bIgnoreSelf = true) const;
 };
