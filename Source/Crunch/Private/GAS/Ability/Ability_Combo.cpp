@@ -13,7 +13,7 @@
 
 UAbility_Combo::UAbility_Combo()
 {
-	AbilityTags.AddTag(CrunchGameplayTags::Ability_BasicAttack);
+	SetAssetTags(FGameplayTagContainer(CrunchGameplayTags::Ability_BasicAttack));
 	BlockAbilitiesWithTag.AddTag(CrunchGameplayTags::Ability_BasicAttack);
 }
 

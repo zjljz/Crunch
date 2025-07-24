@@ -7,6 +7,7 @@
 #include "GAS/CrunchGameplayAbilityTypes.h"
 #include "CrunchPlayerCharacter.generated.h"
 
+class UCrunchHeroAttributeSet;
 struct FInputActionValue;
 class UInputMappingContext;
 class USpringArmComponent;
@@ -76,6 +77,10 @@ public:
 	/******************* Ability System *****************/
 
 	virtual void OnAimChanged(bool bIsAiming) override;
+
+private:
+	UPROPERTY()
+	TObjectPtr<UCrunchHeroAttributeSet> HeroAttributeSet;
 	
 	/***************** End Ability System *****************/
 	

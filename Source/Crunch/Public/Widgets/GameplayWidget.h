@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameplayWidget.generated.h"
 
+class UStatsGauge;
 class UAbilityListView;
 class UGameplayAbility;
 enum class ECrunchAbilityInputID : uint8;
@@ -30,10 +31,26 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UValueGauge> ManaGauge;
-	
+
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UAbilityListView> AbilityListView; 
+	TObjectPtr<UAbilityListView> AbilityListView;
 
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> OwnerASC;
+
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UStatsGauge> AttackDamageGauge;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UStatsGauge> ArmorGauge;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UStatsGauge> StrengthGauge;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UStatsGauge> IntelligenceGauge;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UStatsGauge> MoveSpeedGauge;
 };

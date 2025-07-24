@@ -39,3 +39,42 @@ public:
 	UPROPERTY(EditAnywhere)
 	FVector PushVelocity;
 };
+
+USTRUCT(BlueprintType)
+struct FHeroBaseStats : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AActor> Class;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Strength;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Intelligence;
+
+	//每次升级提升的Strength大小.
+	UPROPERTY(EditDefaultsOnly)
+	float StrengthLevelUpRate;
+
+	//每次升级提升的Intelligence大小.
+	UPROPERTY(EditDefaultsOnly)
+	float IntelligenceLevelUpRate;
+
+	UPROPERTY(EditDefaultsOnly)
+	float BaseMaxHealth;
+
+	UPROPERTY(EditDefaultsOnly)
+	float BaseMaxMana;
+
+	UPROPERTY(EditDefaultsOnly)
+	float BaseAttackDamage;
+
+	UPROPERTY(EditDefaultsOnly)
+	float BaseArmor;
+	
+	UPROPERTY(EditDefaultsOnly)
+	float BaseMoveSpeed;
+};

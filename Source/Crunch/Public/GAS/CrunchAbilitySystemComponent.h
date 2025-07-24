@@ -17,6 +17,9 @@ class CRUNCH_API UCrunchAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UCrunchAbilitySystemComponent();
+
+	void InitBaseAttribute();
+	void ServerSideInit();
 	
 	void ApplyInitialEffects();
 	void GiveInitialAbilities();
@@ -48,4 +51,7 @@ private:
 	//一些专属的能力
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Ability")
 	TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>  Abilities;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Base Stats")
+	TObjectPtr<UDataTable> BaseStatDataTable;
 };

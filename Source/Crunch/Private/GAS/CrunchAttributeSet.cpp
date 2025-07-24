@@ -14,6 +14,9 @@ void UCrunchAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchAttributeSet, AttackDamage, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchAttributeSet, Armor, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchAttributeSet, MoveSpeed, COND_None, REPNOTIFY_Always);
 }
 
 void UCrunchAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -64,4 +67,19 @@ void UCrunchAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldVal)
 void UCrunchAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldVal)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchAttributeSet, MaxMana, OldVal);
+}
+
+void UCrunchAttributeSet::OnRep_AttackDamage(const FGameplayAttributeData& OldVal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchAttributeSet, AttackDamage, OldVal);
+}
+
+void UCrunchAttributeSet::OnRep_Armor(const FGameplayAttributeData& OldVal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchAttributeSet, Armor, OldVal);
+}
+
+void UCrunchAttributeSet::OnRep_MoveSpeed(const FGameplayAttributeData& OldVal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchAttributeSet, MoveSpeed, OldVal);
 }

@@ -25,10 +25,7 @@ public:
 
 	void SetTargetOptions(bool bTargetFriendly, bool bTargetEnemy = true);
 
-	FORCEINLINE void SetTargetAreaRadius(float NewRadius)
-	{
-		TargetAreaRadius = NewRadius;
-	}
+	void SetTargetAreaRadius(float NewRadius);
 
 	FORCEINLINE void SetTraceLineLength(float NewLength)
 	{
@@ -41,6 +38,10 @@ public:
 	}
 	
 private:
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Visual")
+	TObjectPtr<UDecalComponent> DecalComp;
+	
 	bool bShouldTargetEnemy = true;
 
 	bool bShouldTargetFriendly = false;

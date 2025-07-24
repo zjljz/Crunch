@@ -12,6 +12,7 @@
 #include "Crunch/CrunchGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GAS/CrunchHeroAttributeSet.h"
 
 ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 {
@@ -20,6 +21,8 @@ ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 	CameraBoom->ProbeChannel = ECC_SpringArm;
 	CameraBoom->bUsePawnControlRotation = true;
 
+	HeroAttributeSet = CreateDefaultSubobject<UCrunchHeroAttributeSet>(TEXT("HeroAttributeSet"));
+	
 	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
 	ViewCamera->SetupAttachment(CameraBoom);
 

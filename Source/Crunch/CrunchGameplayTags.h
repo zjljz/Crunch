@@ -24,6 +24,8 @@ namespace CrunchGameplayTags
 	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UpperCut_Launch);
 	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UpperCut_Cooldown);
 
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_GroundBlast_Cooldown);
+	
 	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_CameraShake);
 	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_GroundBlast);
 }

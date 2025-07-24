@@ -6,12 +6,17 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GenericTeamAgentInterface.h"
 #include "Abilities/GameplayAbility.h"
+#include "Components/DecalComponent.h"
 #include "Crunch/Crunch.h"
 #include "Engine/OverlapResult.h"
 
 ATargetActor_GroundPick::ATargetActor_GroundPick()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	SetRootComponent(CreateDefaultSubobject<USceneComponent>("RootScene"));
+	DecalComp = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp"));
+	DecalComp->SetupAttachment(RootComponent);
 }
 
 void ATargetActor_GroundPick::Tick(float DeltaSeconds)
@@ -50,7 +55,7 @@ FVector ATargetActor_GroundPick::GetTargetPoint() const
 		{
 			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, TargetAreaRadius, 32, FColor::Red);
 		}
-		
+
 		return Hit.ImpactPoint;
 	}
 
@@ -77,15 +82,15 @@ void ATargetActor_GroundPick::ConfirmTargetingAndContinue()
 		{
 			continue;
 		}
-		
+
 		TargetActors.Add(Result.GetActor());
 	}
-	
+
 	FGameplayAbilityTargetDataHandle TargetDataHandle = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActorArray(TargetActors.Array(), false);
 	FGameplayAbilityTargetData_SingleTargetHit* HitLoc = new FGameplayAbilityTargetData_SingleTargetHit();
 	HitLoc->HitResult.ImpactPoint = GetActorLocation();
 	TargetDataHandle.Add(HitLoc);
-	
+
 	TargetDataReadyDelegate.Broadcast(TargetDataHandle);
 }
 
@@ -93,4 +98,10 @@ void ATargetActor_GroundPick::SetTargetOptions(bool bTargetFriendly, bool bTarge
 {
 	bShouldTargetFriendly = bTargetFriendly;
 	bShouldTargetEnemy = bTargetEnemy;
+}
+
+void ATargetActor_GroundPick::SetTargetAreaRadius(float NewRadius)
+{
+	TargetAreaRadius = NewRadius;
+	DecalComp->DecalSize = FVector(NewRadius);
 }

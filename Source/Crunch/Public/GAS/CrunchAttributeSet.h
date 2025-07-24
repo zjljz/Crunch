@@ -21,6 +21,9 @@ public:
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, MaxHealth)
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, Mana)
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, MaxMana)
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, AttackDamage)
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, Armor)
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, MoveSpeed)
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -44,6 +47,15 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_MaxMana)
 	FGameplayAttributeData MaxMana;
 
+	UPROPERTY(ReplicatedUsing = OnRep_AttackDamage)
+	FGameplayAttributeData AttackDamage;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Armor)
+	FGameplayAttributeData Armor;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed)
+	FGameplayAttributeData MoveSpeed;
+	
 	UFUNCTION()
 	void OnRep_Health(const FGameplayAttributeData& OldVal);
 
@@ -55,4 +67,13 @@ private:
 
 	UFUNCTION()
 	void OnRep_MaxMana(const FGameplayAttributeData& OldVal);
+
+	UFUNCTION()
+	void OnRep_AttackDamage(const FGameplayAttributeData& OldVal);
+
+	UFUNCTION()
+	void OnRep_Armor(const FGameplayAttributeData& OldVal);
+
+	UFUNCTION()
+	void OnRep_MoveSpeed(const FGameplayAttributeData& OldVal);
 };

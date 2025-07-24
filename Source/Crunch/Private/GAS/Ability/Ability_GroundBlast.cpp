@@ -26,14 +26,8 @@ void UAbility_GroundBlast::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		return;
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		//如果没有成功Commit这个Ability，则结束这个Ability
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
-
-	UAbilityTask_PlayMontageAndWait* GroundBlastMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, GroundBlastMontage);
+	
+	UAbilityTask_PlayMontageAndWait* GroundBlastMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, TargetingMontage);
 	GroundBlastMontageTask->OnBlendOut.AddDynamic(this, &ThisClass::K2_EndAbility);
 	GroundBlastMontageTask->OnCancelled.AddDynamic(this, &ThisClass::K2_EndAbility);
 	GroundBlastMontageTask->OnCompleted.AddDynamic(this, &ThisClass::K2_EndAbility);
@@ -65,14 +59,31 @@ void UAbility_GroundBlast::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 void UAbility_GroundBlast::OnTargetConfirmed(const FGameplayAbilityTargetDataHandle& Data)
 {
-	BP_ApplyGameplayEffectToTarget(Data, DamageEffectDef.DamageEffect, GetAbilityLevel());
-	PushTargets(Data, DamageEffectDef.PushVelocity);
+	if (!K2_CommitAbility())
+	{
+		//如果没有成功Commit这个Ability，则结束这个Ability
+		K2_EndAbility();
+		return;
+	}
 	
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		BP_ApplyGameplayEffectToTarget(Data, DamageEffectDef.DamageEffect, GetAbilityLevel());
+		PushTargets(Data, DamageEffectDef.PushVelocity);
+	}
+
+
 	FGameplayCueParameters CueParams;
 	CueParams.Location = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Data, 1).ImpactPoint;
 	CueParams.RawMagnitude = TargetAreaRadius;
 	GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(BlasterCueTag, CueParams);
 	GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(CrunchGameplayTags::GameplayCue_CameraShake);
+
+	if (UAnimInstance* AnimInst = GetActorInfo().SkeletalMeshComponent->GetAnimInstance())
+	{
+		AnimInst->Montage_Play(CastMontage);
+	}
+
 	K2_EndAbility();
 }
 

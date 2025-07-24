@@ -32,8 +32,12 @@ public:
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
-	TObjectPtr<UAnimMontage> GroundBlastMontage;
+	TObjectPtr<UAnimMontage> TargetingMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> CastMontage;
+	
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	FGenericDamageEffectDef DamageEffectDef;
 

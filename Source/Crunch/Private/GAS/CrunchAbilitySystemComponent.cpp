@@ -13,6 +13,18 @@ UCrunchAbilitySystemComponent::UCrunchAbilitySystemComponent()
 	GenericCancelInputID = (int32)ECrunchAbilityInputID::Cancel;
 }
 
+void UCrunchAbilitySystemComponent::InitBaseAttribute()
+{
+	
+}
+
+void UCrunchAbilitySystemComponent::ServerSideInit()
+{
+	InitBaseAttribute();
+	GiveInitialAbilities();
+	ApplyInitialEffects();
+}
+
 void UCrunchAbilitySystemComponent::ApplyInitialEffects()
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
