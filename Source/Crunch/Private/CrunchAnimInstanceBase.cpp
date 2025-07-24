@@ -2,6 +2,10 @@
 
 
 #include "CrunchAnimInstanceBase.h"
+
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "Crunch/CrunchGameplayTags.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -15,6 +19,16 @@ void UCrunchAnimInstanceBase::NativeInitializeAnimation()
 	{
 		OwnerMovementComp = OwnerCharacter->GetCharacterMovement();
 	}
+
+	UAbilitySystemComponent* OwnerASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TryGetPawnOwner());
+	if (OwnerASC)
+	{
+		OwnerASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Aim, EGameplayTagEventType::NewOrRemoved)
+			.AddLambda([this](FGameplayTag Tag, int32 NewCount)
+			{
+				bIsAiming = (NewCount != 0);
+			});
+	}
 }
 
 void UCrunchAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
@@ -23,7 +37,8 @@ void UCrunchAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (OwnerCharacter)
 	{
-		Speed = OwnerMovementComp ? OwnerMovementComp->Velocity.Length() : 0.f;
+		FVector Vel = OwnerMovementComp->Velocity;
+		Speed = OwnerMovementComp ? Vel.Length() : 0.f;
 		FRotator BodyRot = OwnerCharacter->GetActorRotation();
 		FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(BodyRot,BodyLastRot);
 		BodyLastRot = BodyRot;
@@ -33,6 +48,9 @@ void UCrunchAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 
 		FRotator ControlRot = OwnerCharacter->GetBaseAimRotation();
 		LookRotOffset = UKismetMathLibrary::NormalizedDeltaRotator(ControlRot, BodyRot);
+
+		FwdSpeed = Vel.Dot(ControlRot.Vector());
+		RightSpeed = -Vel.Dot(ControlRot.Vector().Cross(FVector::UpVector));
 	}
 
 	if (OwnerMovementComp)
@@ -44,4 +62,9 @@ void UCrunchAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 void UCrunchAnimInstanceBase::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
+}
+
+bool UCrunchAnimInstanceBase::bShouldDoFullBody() const
+{
+	return (GetSpeed() <= 0.0f) && !GetIsAiming();
 }

@@ -15,15 +15,20 @@ class CRUNCH_API AMinionCharacter : public ACrunchCharacter
 
 public:
 	AMinionCharacter();
-	
+
 	void GetSkinBasedOnTeamId();
 
-	bool IsActive()const;
-	void ActivateMinion();
-	
+	void SetGoal(AActor* NewGoal);
+
 	virtual void OnRep_TeamId() override;
-private:
+
+	virtual void OnDeath() override;
+	virtual void OnReSpawn() override;
 	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	FName BB_GoalKeyName = "Goal";
+
 	UPROPERTY(EditDefaultsOnly, Category = "Visual")
 	TMap<FGenericTeamId, USkeletalMesh*> SkinMap;
 };

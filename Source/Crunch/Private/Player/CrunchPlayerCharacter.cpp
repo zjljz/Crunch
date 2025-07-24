@@ -3,10 +3,13 @@
 
 #include "Player/CrunchPlayerCharacter.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "Crunch/Crunch.h"
+#include "Crunch/CrunchGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -14,6 +17,7 @@ ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 {
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->ProbeChannel = ECC_SpringArm;
 	CameraBoom->bUsePawnControlRotation = true;
 
 	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
@@ -57,6 +61,21 @@ void ACrunchPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	}
 }
 
+void ACrunchPlayerCharacter::SetInputEnabled(bool bEnabled)
+{
+	if (APlayerController* OwningPC = GetController<APlayerController>())
+	{
+		if (bEnabled)
+		{
+			EnableInput(OwningPC);
+		}
+		else
+		{
+			DisableInput(OwningPC);
+		}
+	}
+}
+
 void ACrunchPlayerCharacter::HandleLook(const FInputActionValue& InputActionValue)
 {
 	FVector2D InputVal = InputActionValue.Get<FVector2D>();
@@ -86,20 +105,63 @@ void ACrunchPlayerCharacter::HandleAbilityInput(const FInputActionValue& InputAc
 	{
 		GetAbilitySystemComponent()->AbilityLocalInputReleased((int32)AbilityInputID);
 	}
+
+	if (AbilityInputID == ECrunchAbilityInputID::BasicAttack)
+	{
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, CrunchGameplayTags::Ability_BasicAttack_Pressed, FGameplayEventData());
+		Server_SendGameplayEventToSelf(CrunchGameplayTags::Ability_BasicAttack_Pressed, FGameplayEventData());
+	}
 }
 
 void ACrunchPlayerCharacter::OnDeath()
 {
-	if (APlayerController* OwningPC = GetController<APlayerController>())
-	{
-		DisableInput(OwningPC);
-	}
+	SetInputEnabled(false);
 }
 
 void ACrunchPlayerCharacter::OnReSpawn()
 {
-	if (APlayerController* OwningPC = GetController<APlayerController>())
+	SetInputEnabled(true);
+
+	if (HasAuthority())
 	{
-		EnableInput(OwningPC);
+		SetActorTransform(GetController()->StartSpot->GetActorTransform());
 	}
+}
+
+void ACrunchPlayerCharacter::OnStartStun()
+{
+	SetInputEnabled(false);
+}
+
+void ACrunchPlayerCharacter::OnEndStun()
+{
+	SetInputEnabled(true);
+}
+
+void ACrunchPlayerCharacter::OnAimChanged(bool bIsAiming)
+{
+	LerpCameraToLocalOffsetLocation(bIsAiming ? CameraAimLocalOffset : FVector::ZeroVector);
+	
+}
+
+void ACrunchPlayerCharacter::LerpCameraToLocalOffsetLocation(const FVector& TargetLoc)
+{
+	GetWorldTimerManager().ClearTimer(CameraLerpTimerHandle);
+	CameraLerpTimerHandle = GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &ACrunchPlayerCharacter::TickCameraLocalOffsetLerp, TargetLoc));
+}
+
+void ACrunchPlayerCharacter::TickCameraLocalOffsetLerp(FVector TargetLoc)
+{
+	FVector CurrentLoc = ViewCamera->GetRelativeLocation();
+	if (FVector::Dist(CurrentLoc, TargetLoc) < 1.f)
+	{
+		ViewCamera->SetRelativeLocation(TargetLoc);
+		return;
+	}
+
+	float LerpAlpha = FMath::Clamp(CameraLerpSpeed * GetWorld()->GetDeltaSeconds(), 0.f, 1.f);
+	FVector NewLoc = FMath::Lerp(CurrentLoc, TargetLoc, LerpAlpha);
+	ViewCamera->SetRelativeLocation(NewLoc);
+
+	CameraLerpTimerHandle = GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateUObject(this, &ACrunchPlayerCharacter::TickCameraLocalOffsetLerp, TargetLoc));
 }

@@ -49,4 +49,5 @@ void ACrunchPlayerController::SpawnGameplayWidget()
 
 	GameplayWidget = CreateWidget<UGameplayWidget>(this, GameplayWidgetClass);
 	GameplayWidget->AddToViewport();
+	GameplayWidget->ConfigureAbilities(OwnedCharacter->GetAbilities());
 }

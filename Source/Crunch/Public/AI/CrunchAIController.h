@@ -44,6 +44,7 @@ public:
 	void EnableAllSenses();
 
 	void PawnDeadTagUpdate(FGameplayTag Tag, int32 NewCount);
+	void PawnStunTagUpdate(FGameplayTag Tag, int32 NewCount);
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI Behavior")
@@ -58,4 +59,6 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Perception")
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
+
+	bool bPawnIsDead = false;
 };

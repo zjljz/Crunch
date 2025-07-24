@@ -4,6 +4,8 @@
 #include "Widgets/GameplayWidget.h"
 
 #include "AbilitySystemGlobals.h"
+#include "GAS/CrunchAbilitySystemComponent.h"
+#include "Widgets/AbilityListView.h"
 #include "Widgets/ValueGauge.h"
 
 void UGameplayWidget::NativeConstruct()
@@ -16,4 +18,15 @@ void UGameplayWidget::NativeConstruct()
 		HealthGauge->SetAndBoundToGameplayAttribute(OwnerASC, UCrunchAttributeSet::GetHealthAttribute(), UCrunchAttributeSet::GetMaxHealthAttribute());
 		ManaGauge->SetAndBoundToGameplayAttribute(OwnerASC, UCrunchAttributeSet::GetManaAttribute(), UCrunchAttributeSet::GetMaxManaAttribute());
 	}
+
+	if (UCrunchAbilitySystemComponent* CrunchASC = Cast<UCrunchAbilitySystemComponent>(OwnerASC))
+	{
+		ConfigureAbilities(CrunchASC->GetAbilities());
+	}
 }
+
+void UGameplayWidget::ConfigureAbilities(const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& Abilities)
+{
+	AbilityListView->ConfigureAbilities(Abilities);	
+}
+

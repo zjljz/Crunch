@@ -1,0 +1,83 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "GAS/Ability/Ability_GroundBlast.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
+#include "Crunch/CrunchGameplayTags.h"
+#include "GAS/TargetActor_GroundPick.h"
+
+UAbility_GroundBlast::UAbility_GroundBlast()
+{
+	ActivationOwnedTags.AddTag(CrunchGameplayTags::Stats_Aim);
+	BlockAbilitiesWithTag.AddTag(CrunchGameplayTags::Ability_BasicAttack);
+}
+
+void UAbility_GroundBlast::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                           const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	if (!HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
+	{
+		return;
+	}
+
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		//如果没有成功Commit这个Ability，则结束这个Ability
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
+	UAbilityTask_PlayMontageAndWait* GroundBlastMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, GroundBlastMontage);
+	GroundBlastMontageTask->OnBlendOut.AddDynamic(this, &ThisClass::K2_EndAbility);
+	GroundBlastMontageTask->OnCancelled.AddDynamic(this, &ThisClass::K2_EndAbility);
+	GroundBlastMontageTask->OnCompleted.AddDynamic(this, &ThisClass::K2_EndAbility);
+	GroundBlastMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::K2_EndAbility);
+	GroundBlastMontageTask->ReadyForActivation();
+
+	UAbilityTask_WaitTargetData* WaitTargetDataTask = UAbilityTask_WaitTargetData::WaitTargetData
+		(this, NAME_None, EGameplayTargetingConfirmation::UserConfirmed, TargetActorClass);
+
+	WaitTargetDataTask->ValidData.AddDynamic(this, &ThisClass::OnTargetConfirmed);
+	WaitTargetDataTask->Cancelled.AddDynamic(this, &ThisClass::OnTargetCancelled);
+	WaitTargetDataTask->ReadyForActivation();
+
+	// 这里我们只在OwningClient上生成TA, 一般来说AI的GA才会使用ShouldProduceTargetDataOnServer 此时会在Server上生成TA.
+	if (IsLocallyControlled())
+	{
+		AGameplayAbilityTargetActor* TargetActor = nullptr;
+		WaitTargetDataTask->BeginSpawningActor(this, TargetActorClass, TargetActor);
+		if (ATargetActor_GroundPick* GroundPickActor = Cast<ATargetActor_GroundPick>(TargetActor))
+		{
+			GroundPickActor->SetTargetAreaRadius(TargetAreaRadius);
+			GroundPickActor->SetDrawDebug(bDrawDebug);
+			GroundPickActor->SetTraceLineLength(TraceLineLength);
+		}
+
+		WaitTargetDataTask->FinishSpawningActor(this, TargetActor);
+	}
+}
+
+void UAbility_GroundBlast::OnTargetConfirmed(const FGameplayAbilityTargetDataHandle& Data)
+{
+	BP_ApplyGameplayEffectToTarget(Data, DamageEffectDef.DamageEffect, GetAbilityLevel());
+	PushTargets(Data, DamageEffectDef.PushVelocity);
+	
+	FGameplayCueParameters CueParams;
+	CueParams.Location = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Data, 1).ImpactPoint;
+	CueParams.RawMagnitude = TargetAreaRadius;
+	GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(BlasterCueTag, CueParams);
+	GetAbilitySystemComponentFromActorInfo()->ExecuteGameplayCue(CrunchGameplayTags::GameplayCue_CameraShake);
+	K2_EndAbility();
+}
+
+void UAbility_GroundBlast::OnTargetCancelled(const FGameplayAbilityTargetDataHandle& Data)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Target Cancelled!"));
+	K2_EndAbility();
+}

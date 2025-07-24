@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffect.h"
 
 #include "CrunchGameplayAbilityTypes.generated.h"
 
@@ -13,14 +14,28 @@
 UENUM(BlueprintType)
 enum class ECrunchAbilityInputID : uint8
 {
-	None				UMETA(DisplayName = "None"),
-	BasicAttack			UMETA(DisplayName = "BasicAttack"),
-	AbilityOne			UMETA(DisplayName = "AbilityOne"),
-	AbilityTwo			UMETA(DisplayName = "AbilityTwo"),
-	AbilityThree		UMETA(DisplayName = "AbilityThree"),
-	AbilityFour			UMETA(DisplayName = "AbilityFour"),
-	AbilityFive			UMETA(DisplayName = "AbilityFive"),
-	AbilitySix			UMETA(DisplayName = "AbilitySix"),
-	Confirm				UMETA(DisplayName = "Confirm"),
-	Cancel				UMETA(DisplayName = "Cancel")
+	None UMETA(DisplayName = "None"),
+	BasicAttack UMETA(DisplayName = "BasicAttack"),
+	AbilityOne UMETA(DisplayName = "AbilityOne"),
+	AbilityTwo UMETA(DisplayName = "AbilityTwo"),
+	AbilityThree UMETA(DisplayName = "AbilityThree"),
+	AbilityFour UMETA(DisplayName = "AbilityFour"),
+	AbilityFive UMETA(DisplayName = "AbilityFive"),
+	AbilitySix UMETA(DisplayName = "AbilitySix"),
+	Confirm UMETA(DisplayName = "Confirm"),
+	Cancel UMETA(DisplayName = "Cancel")
+};
+
+//用于带有推力的GE
+USTRUCT(BlueprintType)
+struct FGenericDamageEffectDef
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UGameplayEffect> DamageEffect;
+
+	UPROPERTY(EditAnywhere)
+	FVector PushVelocity;
 };

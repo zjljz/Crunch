@@ -8,6 +8,7 @@
 #include "BrainComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/CrunchCharacter.h"
+#include "Crunch/CrunchGameplayTags.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 
@@ -48,6 +49,7 @@ void ACrunchAIController::OnPossess(APawn* InPawn)
 	{
 		FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(FName("Stats.Dead"));
 		PawnASC->RegisterGameplayTagEvent(DeadTag).AddUObject(this, &ThisClass::PawnDeadTagUpdate);
+		PawnASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Stun).AddUObject(this, &ThisClass::PawnStunTagUpdate);
 	}
 }
 
@@ -181,10 +183,29 @@ void ACrunchAIController::PawnDeadTagUpdate(FGameplayTag Tag, int32 NewCount)
 	{
 		GetBrainComponent()->StopLogic(TEXT("Pawn is dead"));
 		ClearAndDisableAllSenses();
+		bPawnIsDead = true;
 	}
 	else
 	{
 		GetBrainComponent()->StartLogic();
 		EnableAllSenses();
+		bPawnIsDead = false;
+	}
+}
+
+void ACrunchAIController::PawnStunTagUpdate(FGameplayTag Tag, int32 NewCount)
+{
+	if (bPawnIsDead)
+	{
+		return;
+	}
+	
+	if (NewCount != 0)
+	{
+		GetBrainComponent()->StopLogic(TEXT("Stun"));
+	}
+	else
+	{
+		GetBrainComponent()->StartLogic();
 	}
 }

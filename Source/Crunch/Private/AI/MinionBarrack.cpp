@@ -61,6 +61,7 @@ void AMinionBarrack::SpawnNewMinions(int32 Amount)
 
 		NewMinion->SetGenericTeamId(BarrackTeamId);
 		NewMinion->FinishSpawning(SpawnTransform);
+		NewMinion->SetGoal(Goal);
 		MinionPool.Add(NewMinion);
 	}
 }
@@ -75,18 +76,17 @@ void AMinionBarrack::SpawnNewGroup()
 		//查找可用的Minion.
 		AMinionCharacter* NextAvailableMinion = GetNextAvailableMinion();
 		if (!NextAvailableMinion) break;
-		
-		//找到SpawnTransform 以及设置 StartSpot. @todo: 这里设置StartSpot是因为CrunchCharacter的Respawn函数没有StartSpot会崩溃 以后需要修复.
+
+		//找到SpawnTransform 以及设置 StartSpot.
 		FTransform SpawnTransform = GetActorTransform();
-		NextAvailableMinion->GetController()->StartSpot = this;
 		if (APlayerStart* NextSpawnSpot = GetNextSpawnSpot())
 		{
 			SpawnTransform = NextSpawnSpot->GetActorTransform();
-			NextAvailableMinion->GetController()->StartSpot = NextSpawnSpot;
 		}
 		
+		NextAvailableMinion->RemoveDeadTag(); // 清除DeadTag 来 ReSpawn Minion.
 		NextAvailableMinion->SetActorTransform(SpawnTransform);
-		NextAvailableMinion->ActivateMinion();
+
 		--i;
 	}
 
@@ -97,7 +97,7 @@ AMinionCharacter* AMinionBarrack::GetNextAvailableMinion() const
 {
 	for (AMinionCharacter* Minion : MinionPool)
 	{
-		if (Minion && !Minion->IsActive())
+		if (Minion && Minion->IsDead())
 		{
 			return Minion;
 		}

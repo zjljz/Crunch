@@ -4,11 +4,12 @@
 #include "AI/MinionCharacter.h"
 
 #include "AbilitySystemComponent.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 AMinionCharacter::AMinionCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
 }
 
 void AMinionCharacter::GetSkinBasedOnTeamId()
@@ -20,16 +21,15 @@ void AMinionCharacter::GetSkinBasedOnTeamId()
 	}
 }
 
-bool AMinionCharacter::IsActive() const
+void AMinionCharacter::SetGoal(AActor* NewGoal)
 {
-	FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(FName("Stats.Dead"));
-	return !GetAbilitySystemComponent()->HasMatchingGameplayTag(DeadTag);
-}
-
-void AMinionCharacter::ActivateMinion()
-{
-	FGameplayTag DeadTag = FGameplayTag::RequestGameplayTag(FName("Stats.Dead"));
-	GetAbilitySystemComponent()->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(DeadTag));
+	if (AAIController* AIController = GetController<AAIController>())
+	{
+		if (UBlackboardComponent* BBComp = AIController->GetBlackboardComponent())
+		{
+			BBComp->SetValueAsObject(BB_GoalKeyName, NewGoal);
+		}
+	}
 }
 
 void AMinionCharacter::OnRep_TeamId()
@@ -39,4 +39,10 @@ void AMinionCharacter::OnRep_TeamId()
 	GetSkinBasedOnTeamId();
 }
 
+void AMinionCharacter::OnDeath()
+{
+}
 
+void AMinionCharacter::OnReSpawn()
+{
+}

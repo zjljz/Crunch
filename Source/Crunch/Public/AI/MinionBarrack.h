@@ -42,6 +42,9 @@ public:
 	//Time in seconds between spawn.
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
 	float GroupSpawnInterval = 5.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Spawn")
+	TObjectPtr<AActor> Goal;
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Spawn")

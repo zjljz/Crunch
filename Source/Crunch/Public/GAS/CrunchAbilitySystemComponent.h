@@ -26,6 +26,8 @@ public:
 	void ApplyFullStat();
 	
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
+	const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const { return Abilities; }
 	
 private:
 

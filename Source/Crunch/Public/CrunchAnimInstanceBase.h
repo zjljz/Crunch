@@ -39,9 +39,17 @@ public:
 	FORCEINLINE bool GetIsJumping() const { return bIsJumping; }
 
 	UFUNCTION(BlueprintCallable, meta=(BlueprintThreadSafe))
+	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
+	
+	UFUNCTION(BlueprintCallable, meta=(BlueprintThreadSafe))
 	FORCEINLINE float GetYawSpeed() const { return YawSpeed; }
 
+	UFUNCTION(BlueprintCallable, meta=(BlueprintThreadSafe))
+	FORCEINLINE float GetFwdSpeed() const { return FwdSpeed; }
 
+	UFUNCTION(BlueprintCallable, meta=(BlueprintThreadSafe))
+	FORCEINLINE float GetRightSpeed() const { return RightSpeed; }
+	
 	UFUNCTION(BlueprintCallable, meta=(BlueprintThreadSafe))
 	FORCEINLINE float GetSmoothedYawSpeed() const { return SmoothedYawSpeed; }
 
@@ -50,6 +58,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta=(BlueprintThreadSafe))
 	FORCEINLINE float GetLookPitchOffset() const { return LookRotOffset.Pitch; }
+
+	UFUNCTION(BlueprintCallable, meta=(BlueprintThreadSafe))
+	bool bShouldDoFullBody() const;
 	
 private:
 	//动画实例的拥有者角色
@@ -75,6 +86,11 @@ private:
 	// 平滑插值的Yaw速度
 	float SmoothedYawSpeed = 0.0f;
 
+	bool bIsAiming = false;
+
+	float RightSpeed = 0.0f;
+	float FwdSpeed = 0.0f;
+	
 	// 平滑插值速度 用于平滑YawSpeed
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	float SmoothLerpSpeedForYawSpeed = 2.0f;

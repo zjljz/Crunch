@@ -1,0 +1,29 @@
+﻿#pragma once
+
+#include "NativeGameplayTags.h"
+
+namespace CrunchGameplayTags
+{
+	CRUNCH_API FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
+	
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Passive_Launch_Activate);
+
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stats_Dead);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stats_Stun);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stats_Aim);
+	
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_BasicAttack);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_BasicAttack_Pressed);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combo_Damage);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combo_Change_Combo01);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combo_Change_Combo02);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combo_Change_Combo03);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combo_Change_Combo04);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Combo_Change_End);
+
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UpperCut_Launch);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_UpperCut_Cooldown);
+
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_CameraShake);
+	CRUNCH_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_GroundBlast);
+}

@@ -6,6 +6,8 @@
 #include "GameplayTagContainer.h"
 #include "CrunchAbilitySystemStatics.generated.h"
 
+class UGameplayAbility;
+
 /**
  * 
  */
@@ -14,5 +16,8 @@ class CRUNCH_API UCrunchAbilitySystemStatics : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:
-	static FGameplayTag GetBasicAttackAbilityTag();
+
+	static float GetCooldownDurationForAbility(const UGameplayAbility* Ability);
+
+	static float GetCostForAbility(const UGameplayAbility* Ability);
 };

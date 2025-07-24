@@ -29,20 +29,14 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 private:
-
-
-private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "View")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "View")
 	TObjectPtr<UCameraComponent> ViewCamera;
 
-	
-	/*****************************************
-	 *				Input
-	 *****************************************/
 
+	/******************* InputSystem *******************/
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_Gameplay;
@@ -59,18 +53,45 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TMap<ECrunchAbilityInputID, TObjectPtr<UInputAction>> GAToIAMap;
 
+	//启用或禁用输入系统.
+	void SetInputEnabled(bool bEnabled);
+
 	void HandleLook(const FInputActionValue& InputActionValue);
 
 	void HandleMove(const FInputActionValue& InputActionValue);
 
 	void HandleAbilityInput(const FInputActionValue& InputActionValue, ECrunchAbilityInputID AbilityInputID);
 
+	/*******************End InputSystem *******************/
 
-	/********************************************************
-	 *				Death and ReSpawn
-	 *******************************************************/				
 
+public:
 	virtual void OnDeath() override;
-
 	virtual void OnReSpawn() override;
+
+	virtual void OnStartStun() override;
+	virtual void OnEndStun() override;
+
+
+	/******************* Ability System *****************/
+
+	virtual void OnAimChanged(bool bIsAiming) override;
+	
+	/***************** End Ability System *****************/
+	
+
+	/******************* CameraView *******************/
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "CameraView")
+	FVector CameraAimLocalOffset = FVector(0.f, 0.f, 50.f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "CameraView")
+	float CameraLerpSpeed = 20.f;
+
+	FTimerHandle CameraLerpTimerHandle;
+
+	void LerpCameraToLocalOffsetLocation(const FVector& TargetLoc);
+	void TickCameraLocalOffsetLerp(FVector TargetLoc);
+	/******************* End CameraView *******************/
 };
