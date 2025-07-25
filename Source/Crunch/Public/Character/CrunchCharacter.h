@@ -7,7 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
-#include "GAS/CrunchAbilitySystemComponent.h"
+#include "Crunch/Public/AbilitySystem/CrunchAbilitySystemComponent.h"
 #include "CrunchCharacter.generated.h"
 
 class UAIPerceptionStimuliSourceComponent;

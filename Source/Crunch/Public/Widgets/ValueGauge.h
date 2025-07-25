@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "GAS/CrunchAttributeSet.h"
+#include "Crunch/Public/AbilitySystem/CrunchAttributeSet.h"
 #include "ValueGauge.generated.h"
 
 class UAbilitySystemComponent;

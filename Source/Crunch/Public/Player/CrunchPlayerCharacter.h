@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/CrunchCharacter.h"
-#include "GAS/CrunchGameplayAbilityTypes.h"
+#include "Crunch/Public/AbilitySystem/CrunchGameplayAbilityTypes.h"
 #include "CrunchPlayerCharacter.generated.h"
 
 class UCrunchHeroAttributeSet;

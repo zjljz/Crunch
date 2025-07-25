@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "GAS/CrunchGameplayAbilityTypes.h"
+#include "Crunch/Public/AbilitySystem/CrunchGameplayAbilityTypes.h"
 #include "BTTask_SendInputToAbilitySystem.generated.h"
 
 /**

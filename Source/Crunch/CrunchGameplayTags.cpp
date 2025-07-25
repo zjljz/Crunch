@@ -15,7 +15,11 @@ namespace CrunchGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Mana_Full, "Stats.Mana.Full", "Mana为满的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Mana_Empty, "Stats.Mana.Empty", "Mana为空的状态")
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Role_Hero, "Role.Hero", "代表这是一个Hero");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attr_Experience, "Attr.Experience", "代表属性中经验的Tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attr_Gold, "Attr.Gold", "代表属性中金币的Tag");
+	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_BasicAttack, "Ability.BasicAttack", "Tag for the basic attack ability. This tag is used to identify the basic attack ability in the game.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_BasicAttack_Pressed, "Ability.BasicAttack.Pressed",
 	                               "Tag used for event that will be signed when the basic attack input is pressed. ");

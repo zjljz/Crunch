@@ -12,7 +12,7 @@
 #include "Crunch/CrunchGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "GAS/CrunchHeroAttributeSet.h"
+#include "Crunch/Public/AbilitySystem/CrunchHeroAttributeSet.h"
 
 ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 {

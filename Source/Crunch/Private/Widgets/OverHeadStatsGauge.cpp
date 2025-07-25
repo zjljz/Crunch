@@ -3,7 +3,7 @@
 
 #include "Widgets/OverHeadStatsGauge.h"
 
-#include "GAS/CrunchAttributeSet.h"
+#include "Crunch/Public/AbilitySystem/CrunchAttributeSet.h"
 #include "Widgets/ValueGauge.h"
 
 void UOverHeadStatsGauge::ConfigureWithASC(UAbilitySystemComponent* ASC)

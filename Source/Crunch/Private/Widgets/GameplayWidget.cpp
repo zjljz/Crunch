@@ -4,7 +4,7 @@
 #include "Widgets/GameplayWidget.h"
 
 #include "AbilitySystemGlobals.h"
-#include "GAS/CrunchAbilitySystemComponent.h"
+#include "Crunch/Public/AbilitySystem/CrunchAbilitySystemComponent.h"
 #include "Widgets/AbilityListView.h"
 #include "Widgets/ValueGauge.h"
 

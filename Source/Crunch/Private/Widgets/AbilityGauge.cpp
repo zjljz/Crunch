@@ -8,7 +8,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "GAS/CrunchAbilitySystemStatics.h"
+#include "Crunch/Public/AbilitySystem/CrunchAbilitySystemStatics.h"
 
 
 void UAbilityGauge::NativeConstruct()
