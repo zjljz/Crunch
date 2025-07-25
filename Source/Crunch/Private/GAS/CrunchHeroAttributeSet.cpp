@@ -23,9 +23,19 @@ void UCrunchHeroAttributeSet::OnRep_Intelligence(const FGameplayAttributeData& O
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, Intelligence, OldVal);
 }
 
+void UCrunchHeroAttributeSet::OnRep_IntelligenceGrowRate(const FGameplayAttributeData& OldVal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, IntelligenceGrowRate, OldVal);
+}
+
 void UCrunchHeroAttributeSet::OnRep_Strength(const FGameplayAttributeData& OldVal)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, Strength, OldVal);
+}
+
+void UCrunchHeroAttributeSet::OnRep_StrengthGrowRate(const FGameplayAttributeData& OldVal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, StrengthGrowRate, OldVal);
 }
 
 void UCrunchHeroAttributeSet::OnRep_Experience(const FGameplayAttributeData& OldVal)

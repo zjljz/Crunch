@@ -20,7 +20,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, Intelligence);
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, IntelligenceGrowRate);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, Strength);
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, StrengthGrowRate);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, Experience);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, PreLevelExperience);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, NextLevelExperience);
@@ -32,9 +34,15 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Intelligence)
 	FGameplayAttributeData Intelligence;
 
+	UPROPERTY(ReplicatedUsing = OnRep_IntelligenceGrowRate)
+	FGameplayAttributeData IntelligenceGrowRate;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_Strength)
 	FGameplayAttributeData Strength;
 
+	UPROPERTY(ReplicatedUsing = OnRep_StrengthGrowRate)
+	FGameplayAttributeData StrengthGrowRate;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_Experience)
 	FGameplayAttributeData Experience;
 
@@ -57,8 +65,14 @@ private:
 	void OnRep_Intelligence(const FGameplayAttributeData& OldVal);
 
 	UFUNCTION()
+	void OnRep_IntelligenceGrowRate(const FGameplayAttributeData& OldVal);
+	
+	UFUNCTION()
 	void OnRep_Strength(const FGameplayAttributeData& OldVal);
 
+	UFUNCTION()
+	void OnRep_StrengthGrowRate(const FGameplayAttributeData& OldVal);
+	
 	UFUNCTION()
 	void OnRep_Experience(const FGameplayAttributeData& OldVal);
 

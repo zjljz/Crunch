@@ -52,9 +52,11 @@ public:
 	void ServerInit();
 	void ClientInit();
 
-	//绑定GAS相关的Tag变化事件.
+	//绑定GAS相关的Tag变化事件. @todo: 更新函数名以及说明.
 	void BindAbilitySystemTagChangeDelegate();
 
+	void OnAttributeMoveSpeedUpdate(const FOnAttributeChangeData& Data);
+	
 	//当AimTag的数量发生变化时调用.
 	void OnAimTagUpdate(const FGameplayTag Tag, int32 NewCount);
 	

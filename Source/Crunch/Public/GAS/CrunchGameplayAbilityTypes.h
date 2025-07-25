@@ -57,11 +57,11 @@ public:
 
 	//每次升级提升的Strength大小.
 	UPROPERTY(EditDefaultsOnly)
-	float StrengthLevelUpRate;
+	float StrengthGrowRate;
 
 	//每次升级提升的Intelligence大小.
 	UPROPERTY(EditDefaultsOnly)
-	float IntelligenceLevelUpRate;
+	float IntelligenceGrowRate;
 
 	UPROPERTY(EditDefaultsOnly)
 	float BaseMaxHealth;

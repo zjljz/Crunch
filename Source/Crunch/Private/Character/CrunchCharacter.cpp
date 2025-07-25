@@ -24,7 +24,7 @@ ACrunchCharacter::ACrunchCharacter()
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_SpringArm, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Target, ECollisionResponse::ECR_Ignore);
-	
+
 	//@todo: 这里的 ASC 对于Character 和 AICharacter 需要分情况讨论 以后需要修改创建.
 	CrunchASC = CreateDefaultSubobject<UCrunchAbilitySystemComponent>(TEXT("CrunchASC"));
 	CrunchAttributeSet = CreateDefaultSubobject<UCrunchAttributeSet>(TEXT("CrunchAttributeSet"));
@@ -79,8 +79,7 @@ void ACrunchCharacter::Server_SendGameplayEventToSelf_Implementation(FGameplayTa
 void ACrunchCharacter::ServerInit()
 {
 	CrunchASC->InitAbilityActorInfo(this, this);
-	CrunchASC->ApplyInitialEffects();
-	CrunchASC->GiveInitialAbilities();
+	CrunchASC->ServerSideInit();
 }
 
 void ACrunchCharacter::ClientInit()
@@ -95,7 +94,14 @@ void ACrunchCharacter::BindAbilitySystemTagChangeDelegate()
 		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Dead).AddUObject(this, &ThisClass::OnDeadTagUpDate);
 		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Stun).AddUObject(this, &ThisClass::OnStunTagUpdate);
 		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Aim).AddUObject(this, &ThisClass::OnAimTagUpdate);
+
+		CrunchASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ThisClass::OnAttributeMoveSpeedUpdate);
 	}
+}
+
+void ACrunchCharacter::OnAttributeMoveSpeedUpdate(const FOnAttributeChangeData& Data)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
 }
 
 void ACrunchCharacter::OnAimTagUpdate(const FGameplayTag Tag, int32 NewCount)

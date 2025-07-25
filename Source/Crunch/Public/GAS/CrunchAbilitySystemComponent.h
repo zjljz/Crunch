@@ -18,7 +18,9 @@ class CRUNCH_API UCrunchAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	UCrunchAbilitySystemComponent();
 
+	//初始化 HeroAttributeSet.
 	void InitBaseAttribute();
+
 	void ServerSideInit();
 	
 	void ApplyInitialEffects();
@@ -29,7 +31,8 @@ public:
 	void ApplyFullStat();
 	
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
-
+	void OnManaChanged(const FOnAttributeChangeData& Data);
+	
 	const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const { return Abilities; }
 	
 private:
