@@ -23,7 +23,7 @@ public:
 	FORCEINLINE const TArray<TSubclassOf<UGameplayEffect>>& GetInitialEffects() const { return InitialEffects; }
 	FORCEINLINE const TArray<TSubclassOf<UGameplayAbility>>& GetPassiveAbilities() const { return PassiveAbilities; }
 	FORCEINLINE const UDataTable* GetBaseStatDataTable() { return BaseStatDataTable; }
-
+	FRealCurve* GetExpCurve() const;
 private:
 	//回满状态的GE
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effect")
@@ -44,4 +44,10 @@ private:
 	//基础属性的数据表.
 	UPROPERTY(EditDefaultsOnly, Category = "Base Stats")
 	TObjectPtr<UDataTable> BaseStatDataTable;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Level")
+	FName ExpCurveName = "ExpNeedToReachLevel";
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Level")
+	TObjectPtr<UCurveTable> ExpCurveTable;
 };

@@ -24,7 +24,9 @@ public:
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, AttackDamage)
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, Armor)
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, MoveSpeed)
-
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, CachedHealthPercent)
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchAttributeSet, CachedManaPercent)
+	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 
@@ -33,6 +35,9 @@ public:
 
 	//因为GE的Execution 不会触发PreAttributeChange 所以需要在这里再次限制属性范围
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+
+	void RescaleHealth();
+	void RescaleMana();
 	
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
@@ -55,6 +60,13 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed)
 	FGameplayAttributeData MoveSpeed;
+
+	UPROPERTY()
+	FGameplayAttributeData CachedHealthPercent;
+
+	UPROPERTY()
+	FGameplayAttributeData CachedManaPercent;
+	
 	
 	UFUNCTION()
 	void OnRep_Health(const FGameplayAttributeData& OldVal);

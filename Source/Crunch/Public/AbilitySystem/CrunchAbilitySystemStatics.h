@@ -6,7 +6,10 @@
 #include "GameplayTagContainer.h"
 #include "CrunchAbilitySystemStatics.generated.h"
 
+class UAbilitySystemComponent;
+struct FGameplayAbilitySpec;
 class UGameplayAbility;
+
 
 /**
  * 
@@ -22,4 +25,10 @@ public:
 	static float GetCostForAbility(const UGameplayAbility* Ability);
 
 	static bool IsHero(const AActor* ActorToCheck);
+	static bool IsAbilityAtMaxLevel(const FGameplayAbilitySpec& Spec);
+	
+	static bool CheckAbilityCost(const FGameplayAbilitySpec& AbilitySpec, const UAbilitySystemComponent& ASC);
+	static float GetManaCostForAbility(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& ASC, int AbilityLevel);
+	static float GetCooldownDurationForAbility(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& ASC, int AbilityLevel);
+	static float GetCooldownRemainingForAbility(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& ASC);
 };

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameplayWidget.generated.h"
 
+class UInventoryShopWidget;
 class UStatsGauge;
 class UAbilityListView;
 class UGameplayAbility;
@@ -25,6 +26,19 @@ public:
 
 	void ConfigureAbilities(const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& Abilities);
 
+	void ToggleShopVisible();
+
+private:
+
+	void PlayShopPopAnimation(bool bPlayForward = true);
+
+	void SetOwningPawnInputEnabled(bool bEnabled);
+
+	void SetShowMouseCursor(bool bShowMouseCursor);
+
+	void SetInputModeGameAndUI();
+
+	void SetInputModeGameOnly();
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UValueGauge> HealthGauge;
@@ -34,17 +48,13 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UAbilityListView> AbilityListView;
-
-	UPROPERTY()
-	TObjectPtr<UAbilitySystemComponent> OwnerASC;
-
-
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UStatsGauge> AttackDamageGauge;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UStatsGauge> ArmorGauge;
-	
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UStatsGauge> StrengthGauge;
 
@@ -53,4 +63,13 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UStatsGauge> MoveSpeedGauge;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UInventoryShopWidget> ShopWidget;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> ShopPopAnim;
+	
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> OwnerASC;
 };

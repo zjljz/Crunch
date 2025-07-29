@@ -4,6 +4,7 @@
 #include "Crunch/Public/AbilitySystem/CrunchGameplayAbility.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Crunch/CrunchGameplayTags.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -12,6 +13,18 @@ UCrunchGameplayAbility::UCrunchGameplayAbility()
 {
 	//@todo: 为所有能力添加了一个Stun的BlockedTag, 也就是说在Stun时 会Block其他Ability的Activate.
 	ActivationBlockedTags.AddTag(CrunchGameplayTags::Stats_Stun);
+}
+
+bool UCrunchGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
+	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	FGameplayAbilitySpec* AbilitySpec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle((Handle));
+	if (AbilitySpec && AbilitySpec->Level <= 0)
+	{
+		return false;
+	}
+	
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
 TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereRadius,

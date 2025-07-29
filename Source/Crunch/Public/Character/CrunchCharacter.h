@@ -32,7 +32,7 @@ protected:
 	virtual void BeginPlay() override;
 
 
-	/***************** Ability System *****************/
+	/********************************* Ability System ***********************************/
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Ability System")
 	TObjectPtr<UCrunchAbilitySystemComponent> CrunchASC;
@@ -56,6 +56,8 @@ public:
 	void BindAbilitySystemTagChangeDelegate();
 
 	void OnAttributeMoveSpeedUpdate(const FOnAttributeChangeData& Data);
+	void OnAttributeMaxHealthUpdate(const FOnAttributeChangeData& Data);
+	void OnAttributeMaxManaUpdate(const FOnAttributeChangeData& Data);
 	
 	//当AimTag的数量发生变化时调用.
 	void OnAimTagUpdate(const FGameplayTag Tag, int32 NewCount);
@@ -75,6 +77,9 @@ public:
 	void SetIsAiming(bool bIsAiming);
 
 	virtual void OnAimChanged(bool bIsAiming) {};
+
+protected:
+	void UpgradeAbilityWithInputID(ECrunchAbilityInputID InputID);
 	
 	/**************** End Ability System *****************/
 

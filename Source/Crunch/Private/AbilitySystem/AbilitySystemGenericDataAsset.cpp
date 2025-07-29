@@ -3,3 +3,7 @@
 
 #include "AbilitySystem/AbilitySystemGenericDataAsset.h"
 
+FRealCurve* UAbilitySystemGenericDataAsset::GetExpCurve() const
+{
+	return ExpCurveTable->FindCurve(ExpCurveName,"");
+}

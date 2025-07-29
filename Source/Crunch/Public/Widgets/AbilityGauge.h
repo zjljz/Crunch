@@ -7,6 +7,9 @@
 #include "Blueprint/UserWidget.h"
 #include "AbilityGauge.generated.h"
 
+struct FOnAttributeChangeData;
+struct FGameplayAbilitySpec;
+class UAbilitySystemComponent;
 class UGameplayAbility;
 class UImage;
 class UTextBlock;
@@ -58,6 +61,14 @@ public:
 	void CooldownFinished();
 
 	void UpdateCooldown();
+
+	const FGameplayAbilitySpec* GetAbilitySpec();
+
+	void OnAbilitySpecUpdate(const FGameplayAbilitySpec& NewSpec);
+
+	void UpdateCanCast();
+	void OnUpgradePointUpdate(const FOnAttributeChangeData& Data);
+	void OnManaUpdate(const FOnAttributeChangeData& Data);
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Data")
@@ -67,16 +78,31 @@ private:
 	FName CooldownPercentParamName = "Percent";
 	
 	UPROPERTY(meta = (BindWidget))
-	UImage* Icon;
+	TObjectPtr<UImage> Icon;
+
+	//控制技能Icon下方代表等级的进度.
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	FName AbilityLevelParamName = "Level";
+
+	//控制技能是灰色还是亮色. --- 代表是否可以使用或者是否学习.
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	FName CanCastAbilityParamName = "CanCast";
+
+	//控制技能Icon的周围一圈闪烁. ---- 1为闪烁 0为无.
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	FName AvailableParamName = "Available";
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> LevelGauge;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CooldownCountText;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* CooldownCountText;
+	TObjectPtr<UTextBlock> CooldownDurationText;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* CooldownDurationText;
-
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* CostText;
+	TObjectPtr<UTextBlock> CostText;
 
 	UPROPERTY()
 	TWeakObjectPtr<UGameplayAbility> AbilityCDO; // The ability this gauge represents
@@ -96,4 +122,11 @@ private:
 	//Cooldown Finish/Update 的计时器.
 	FTimerHandle CooldownTimerHandle;
 	FTimerHandle CooldownUpdateTimerHandle;
+
+	UPROPERTY()
+	UAbilitySystemComponent* OwnerASC;
+
+	const FGameplayAbilitySpec* CachedAbilitySpec;
+
+	bool bIsAbilityLearned = false;
 };

@@ -11,9 +11,11 @@ void UCrunchHeroAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimeP
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, Intelligence, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, Strength, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, Experience, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, MaxLevelExperience, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, PreLevelExperience, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, NextLevelExperience, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, Level, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, UpgradePoint, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, MaxLevel, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCrunchHeroAttributeSet, Gold, COND_None, REPNOTIFY_Always);
 }
@@ -43,6 +45,11 @@ void UCrunchHeroAttributeSet::OnRep_Experience(const FGameplayAttributeData& Old
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, Experience, OldVal);
 }
 
+void UCrunchHeroAttributeSet::OnRep_MaxLevelExperience(const FGameplayAttributeData& OldVal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, MaxLevelExperience, OldVal);
+}
+
 void UCrunchHeroAttributeSet::OnRep_PreLevelExperience(const FGameplayAttributeData& OldVal)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, PreLevelExperience, OldVal);
@@ -56,6 +63,11 @@ void UCrunchHeroAttributeSet::OnRep_NextLevelExperience(const FGameplayAttribute
 void UCrunchHeroAttributeSet::OnRep_Level(const FGameplayAttributeData& OldVal)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, Level, OldVal);
+}
+
+void UCrunchHeroAttributeSet::OnRep_UpgradePoint(const FGameplayAttributeData& OldVal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCrunchHeroAttributeSet, UpgradePoint, OldVal);
 }
 
 void UCrunchHeroAttributeSet::OnRep_MaxLevel(const FGameplayAttributeData& OldVal)

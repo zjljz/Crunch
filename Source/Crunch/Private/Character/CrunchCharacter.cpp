@@ -4,6 +4,7 @@
 #include "Character/CrunchCharacter.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystem/CrunchHeroAttributeSet.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Crunch/Crunch.h"
@@ -96,12 +97,30 @@ void ACrunchCharacter::BindAbilitySystemTagChangeDelegate()
 		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Aim).AddUObject(this, &ThisClass::OnAimTagUpdate);
 
 		CrunchASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ThisClass::OnAttributeMoveSpeedUpdate);
+		CrunchASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetMaxHealthAttribute()).AddUObject(this, &ThisClass::OnAttributeMaxHealthUpdate);
+		CrunchASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetMaxManaAttribute()).AddUObject(this, &ThisClass::OnAttributeMaxManaUpdate);
 	}
 }
 
 void ACrunchCharacter::OnAttributeMoveSpeedUpdate(const FOnAttributeChangeData& Data)
 {
 	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+}
+
+void ACrunchCharacter::OnAttributeMaxHealthUpdate(const FOnAttributeChangeData& Data)
+{
+	if (IsValid(CrunchAttributeSet))
+	{
+		CrunchAttributeSet->RescaleHealth();
+	}
+}
+
+void ACrunchCharacter::OnAttributeMaxManaUpdate(const FOnAttributeChangeData& Data)
+{
+	if (IsValid(CrunchAttributeSet))
+	{
+		CrunchAttributeSet->RescaleMana();
+	}
 }
 
 void ACrunchCharacter::OnAimTagUpdate(const FGameplayTag Tag, int32 NewCount)
@@ -154,6 +173,14 @@ void ACrunchCharacter::SetIsAiming(bool bIsAiming)
 	bUseControllerRotationYaw = bIsAiming;
 	GetCharacterMovement()->bOrientRotationToMovement = !bIsAiming;
 	OnAimChanged(bIsAiming);
+}
+
+void ACrunchCharacter::UpgradeAbilityWithInputID(ECrunchAbilityInputID InputID)
+{
+	if (CrunchASC)
+	{
+		CrunchASC->Server_UpgradeAbilityWithInputID(InputID);
+	}
 }
 
 void ACrunchCharacter::ConfigureOverHeadWidget()

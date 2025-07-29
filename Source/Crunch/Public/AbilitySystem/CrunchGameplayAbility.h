@@ -16,9 +16,11 @@ class CRUNCH_API UCrunchGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 
 public:
-
 	UCrunchGameplayAbility();
-	
+
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr,
+	                                const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
 	TArray<FHitResult> GetHitResultsFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereRadius = 30.f,
 	                                                            ETeamAttitude::Type TargetTeam = ETeamAttitude::Hostile, bool bDrawDebug = false, bool bIgnoreSelf = true) const;
 
@@ -29,6 +31,6 @@ public:
 
 	void PushTargets(const TArray<AActor*>& Targets, const FVector& PushVel);
 	void PushTargets(const FGameplayAbilityTargetDataHandle& TargetData, const FVector& PushVel);
-	
+
 	void ApplyGEToHitResultActor(const FHitResult& Hit, TSubclassOf<UGameplayEffect> EffectClass, int EffectLevel);
 };

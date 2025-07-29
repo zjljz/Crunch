@@ -13,6 +13,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Crunch/Public/AbilitySystem/CrunchHeroAttributeSet.h"
+#include "Inventory/InventoryComponent.h"
 
 ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 {
@@ -22,7 +23,7 @@ ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 	CameraBoom->bUsePawnControlRotation = true;
 
 	HeroAttributeSet = CreateDefaultSubobject<UCrunchHeroAttributeSet>(TEXT("HeroAttributeSet"));
-	
+
 	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
 	ViewCamera->SetupAttachment(CameraBoom);
 
@@ -30,6 +31,8 @@ ACrunchPlayerCharacter::ACrunchPlayerCharacter()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
+
+	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComp"));
 }
 
 void ACrunchPlayerCharacter::PawnClientRestart()
@@ -39,7 +42,7 @@ void ACrunchPlayerCharacter::PawnClientRestart()
 	if (APlayerController* OwningPC = GetController<APlayerController>())
 	{
 		UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = OwningPC->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-		EnhancedInputSubsystem->ClearAllMappings();
+		EnhancedInputSubsystem->RemoveMappingContext(IMC_Gameplay);
 		EnhancedInputSubsystem->AddMappingContext(IMC_Gameplay, 0);
 	}
 }
@@ -53,6 +56,8 @@ void ACrunchPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInput->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &ACrunchPlayerCharacter::Jump);
 		EnhancedInput->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ACrunchPlayerCharacter::HandleLook);
 		EnhancedInput->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ACrunchPlayerCharacter::HandleMove);
+		EnhancedInput->BindAction(IA_UpgradeAbility, ETriggerEvent::Started, this, &ThisClass::HandleAbilityLeaderDown);
+		EnhancedInput->BindAction(IA_UpgradeAbility, ETriggerEvent::Completed, this, &ThisClass::HandleAbilityLeaderUp);
 
 		for (auto Pair : GAToIAMap)
 		{
@@ -98,9 +103,25 @@ void ACrunchPlayerCharacter::HandleMove(const FInputActionValue& InputActionValu
 	AddMovementInput(WorldDirection);
 }
 
+void ACrunchPlayerCharacter::HandleAbilityLeaderDown(const FInputActionValue& InputActionValue)
+{
+	bIsUpgradeAbilityKeyDown = true;
+}
+
+void ACrunchPlayerCharacter::HandleAbilityLeaderUp(const FInputActionValue& InputActionValue)
+{
+	bIsUpgradeAbilityKeyDown = false;
+}
+
 void ACrunchPlayerCharacter::HandleAbilityInput(const FInputActionValue& InputActionValue, ECrunchAbilityInputID AbilityInputID)
 {
-	if (bool bPressed = InputActionValue.Get<bool>())
+	bool bPressed = InputActionValue.Get<bool>();
+	if (bPressed && bIsUpgradeAbilityKeyDown)
+	{
+		UpgradeAbilityWithInputID(AbilityInputID);
+	}
+
+	if (bPressed)
 	{
 		GetAbilitySystemComponent()->AbilityLocalInputPressed((int32)AbilityInputID);
 	}
@@ -143,8 +164,10 @@ void ACrunchPlayerCharacter::OnEndStun()
 
 void ACrunchPlayerCharacter::OnAimChanged(bool bIsAiming)
 {
-	LerpCameraToLocalOffsetLocation(bIsAiming ? CameraAimLocalOffset : FVector::ZeroVector);
-	
+	if (IsLocallyControlled())
+	{
+		LerpCameraToLocalOffsetLocation(bIsAiming ? CameraAimLocalOffset : FVector::ZeroVector);
+	}
 }
 
 void ACrunchPlayerCharacter::LerpCameraToLocalOffsetLocation(const FVector& TargetLoc)

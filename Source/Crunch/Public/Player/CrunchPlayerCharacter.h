@@ -7,6 +7,7 @@
 #include "Crunch/Public/AbilitySystem/CrunchGameplayAbilityTypes.h"
 #include "CrunchPlayerCharacter.generated.h"
 
+class UInventoryComponent;
 class UCrunchHeroAttributeSet;
 struct FInputActionValue;
 class UInputMappingContext;
@@ -36,7 +37,6 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "View")
 	TObjectPtr<UCameraComponent> ViewCamera;
 
-
 	/******************* InputSystem *******************/
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -52,7 +52,12 @@ private:
 	TObjectPtr<UInputAction> IA_Move;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_UpgradeAbility;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TMap<ECrunchAbilityInputID, TObjectPtr<UInputAction>> GAToIAMap;
+
+	bool bIsUpgradeAbilityKeyDown = false;
 
 	//启用或禁用输入系统.
 	void SetInputEnabled(bool bEnabled);
@@ -60,6 +65,9 @@ private:
 	void HandleLook(const FInputActionValue& InputActionValue);
 
 	void HandleMove(const FInputActionValue& InputActionValue);
+
+	void HandleAbilityLeaderDown(const FInputActionValue& InputActionValue);
+	void HandleAbilityLeaderUp(const FInputActionValue& InputActionValue);
 
 	void HandleAbilityInput(const FInputActionValue& InputActionValue, ECrunchAbilityInputID AbilityInputID);
 
@@ -81,9 +89,9 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<UCrunchHeroAttributeSet> HeroAttributeSet;
-	
+
 	/***************** End Ability System *****************/
-	
+
 
 	/******************* CameraView *******************/
 
@@ -99,4 +107,11 @@ private:
 	void LerpCameraToLocalOffsetLocation(const FVector& TargetLoc);
 	void TickCameraLocalOffsetLerp(FVector TargetLoc);
 	/******************* End CameraView *******************/
+
+
+	/******************* Inventory System *******************/
+	UPROPERTY(VisibleDefaultsOnly, Category = "Inventory System")
+	TObjectPtr<UInventoryComponent> InventoryComp;
+
+	/******************End Inventory System***********/
 };

@@ -50,11 +50,7 @@ private:
 	// 上勾拳的动画Montage.
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> UpperCutMontage;
-
-	// 目标范围的半径, 用于检测命中的敌人.
-	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
-	float TargetSweepSphereRadius = 80.f;
-
+	
 	// 向上推力的速度.
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	float UpperCutLaunchSpeed = 1000.f;

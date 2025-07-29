@@ -33,8 +33,18 @@ public:
 
 	void OnHealthChanged(const FOnAttributeChangeData& Data);
 	void OnManaChanged(const FOnAttributeChangeData& Data);
+	void OnExpChanged(const FOnAttributeChangeData& Data);
+
+	bool IsNowAtMaxLevel() const;
 
 	const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const { return Abilities; }
+
+	//根据Id 升级对应的GA.
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_UpgradeAbilityWithInputID(ECrunchAbilityInputID InputID);
+
+	UFUNCTION(Client, Reliable)
+	void Client_AbilityLevelUpdated(FGameplayAbilitySpecHandle Handle, int NewLevel);
 
 private:
 	//一些通用的基础能力

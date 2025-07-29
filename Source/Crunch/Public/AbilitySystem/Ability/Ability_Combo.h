@@ -41,10 +41,7 @@ private:
 
 	//下一个Combo的名称.
 	FName NextComboName = NAME_None;
-
-	UPROPERTY(EditAnywhere, Category = "Gameplay Ability")
-	float TargetSweepSphereRadius = 30.f;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
 	TMap<FName, TSubclassOf<UGameplayEffect>> ComboEffectMap;
 

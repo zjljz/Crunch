@@ -7,6 +7,8 @@
 #include "GameFramework/PlayerController.h"
 #include "CrunchPlayerController.generated.h"
 
+class UInputAction;
+class UInputMappingContext;
 class UGameplayWidget;
 class ACrunchPlayerCharacter;
 /**
@@ -19,12 +21,15 @@ class CRUNCH_API ACrunchPlayerController : public APlayerController, public IGen
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 	//只在Server上调用
 	virtual void OnPossess(APawn* InPawn) override;
 
 	//在Client/Listen Server上调用
 	virtual void AcknowledgePossession(APawn* P) override;
+
+protected:
+	virtual void SetupInputComponent() override;
 
 	void SpawnGameplayWidget();
 
@@ -38,6 +43,21 @@ private:
 	UPROPERTY()
 	TObjectPtr<UGameplayWidget> GameplayWidget;
 
+
+	/******************* Input *******************/
+
+
+private:
+	UFUNCTION()
+	void ToggleShop();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> IMC_UI;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_ToggleShop;
+
+	/****************End Input *******************/
 public:
 	/***************************************************
 	 *			Team System
@@ -50,4 +70,6 @@ public:
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamId;
+
+	/******************** End Team ********************/
 };

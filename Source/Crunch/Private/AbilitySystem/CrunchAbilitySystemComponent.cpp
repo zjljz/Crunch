@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
 #include "AbilitySystem/AbilitySystemGenericDataAsset.h"
+#include "AbilitySystem/CrunchAbilitySystemStatics.h"
 #include "Crunch/CrunchGameplayTags.h"
 #include "Crunch/Public/AbilitySystem/CrunchAttributeSet.h"
 #include "Crunch/Public/AbilitySystem/CrunchHeroAttributeSet.h"
@@ -14,6 +15,7 @@ UCrunchAbilitySystemComponent::UCrunchAbilitySystemComponent()
 {
 	GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
 	GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetManaAttribute()).AddUObject(this, &ThisClass::OnManaChanged);
+	GetGameplayAttributeValueChangeDelegate(UCrunchHeroAttributeSet::GetExperienceAttribute()).AddUObject(this, &ThisClass::OnExpChanged);
 
 	GenericConfirmInputID = (int32)ECrunchAbilityInputID::Confirm;
 	GenericCancelInputID = (int32)ECrunchAbilityInputID::Cancel;
@@ -26,7 +28,7 @@ void UCrunchAbilitySystemComponent::InitBaseAttribute()
 	const FHeroBaseStats* BaseStats = nullptr;
 
 	const UDataTable* BaseStatDataTable = DA_AbilitySystemGeneric->GetBaseStatDataTable();
-	
+
 	for (const TPair<FName, uint8*>& Pair : BaseStatDataTable->GetRowMap())
 	{
 		BaseStats = BaseStatDataTable->FindRow<FHeroBaseStats>(Pair.Key, "");
@@ -49,6 +51,16 @@ void UCrunchAbilitySystemComponent::InitBaseAttribute()
 		SetNumericAttributeBase(UCrunchAttributeSet::GetArmorAttribute(), BaseStats->BaseArmor);
 		SetNumericAttributeBase(UCrunchAttributeSet::GetMoveSpeedAttribute(), BaseStats->BaseMoveSpeed);
 	}
+
+	if (const FRealCurve* ExpCurve = DA_AbilitySystemGeneric->GetExpCurve())
+	{
+		int MaxLevel = ExpCurve->GetNumKeys();
+		float MaxLevelExp = ExpCurve->GetKeyValue(ExpCurve->GetLastKeyHandle());
+		SetNumericAttributeBase(UCrunchHeroAttributeSet::GetMaxLevelAttribute(), MaxLevel);
+		SetNumericAttributeBase(UCrunchHeroAttributeSet::GetMaxLevelExperienceAttribute(), MaxLevelExp);
+	}
+
+	OnExpChanged(FOnAttributeChangeData());
 }
 
 void UCrunchAbilitySystemComponent::ServerSideInit()
@@ -219,5 +231,76 @@ void UCrunchAbilitySystemComponent::OnManaChanged(const FOnAttributeChangeData& 
 		{
 			RemoveLooseGameplayTag(CrunchGameplayTags::Stats_Mana_Empty);
 		}
+	}
+}
+
+void UCrunchAbilitySystemComponent::OnExpChanged(const FOnAttributeChangeData& Data)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority() || IsNowAtMaxLevel() || !DA_AbilitySystemGeneric || !DA_AbilitySystemGeneric->GetExpCurve())
+	{
+		//@todo: 这里需要添加一个Log ? 例如在找不到ExpCurve时打印一个Log.
+		return;
+	}
+
+	float CurExp = Data.NewValue;
+
+	const FRealCurve* ExpCurve = DA_AbilitySystemGeneric->GetExpCurve();
+	float PreLevelExp = 0;
+	float NextLevelExp = 0;
+	float NewLevel = 1;
+	for (auto It = ExpCurve->GetKeyHandleIterator(); It; ++It)
+	{
+		float ExpToReachLevel = ExpCurve->GetKeyValue(*It);
+		if (CurExp < ExpToReachLevel)
+		{
+			NextLevelExp = ExpToReachLevel;
+			break;
+		}
+		PreLevelExp = ExpToReachLevel;
+		NewLevel = It.GetIndex() + 1;
+	}
+
+	float CurLevel = GetNumericAttributeBase(UCrunchHeroAttributeSet::GetLevelAttribute());
+	float CurUpgradePoint = GetNumericAttributeBase(UCrunchHeroAttributeSet::GetUpgradePointAttribute());
+	float LevelUpgrade = NewLevel - CurLevel;
+
+	SetNumericAttributeBase(UCrunchHeroAttributeSet::GetLevelAttribute(), NewLevel);
+	SetNumericAttributeBase(UCrunchHeroAttributeSet::GetPreLevelExperienceAttribute(), PreLevelExp);
+	SetNumericAttributeBase(UCrunchHeroAttributeSet::GetNextLevelExperienceAttribute(), NextLevelExp);
+	SetNumericAttributeBase(UCrunchHeroAttributeSet::GetUpgradePointAttribute(), LevelUpgrade + CurUpgradePoint);
+}
+
+bool UCrunchAbilitySystemComponent::IsNowAtMaxLevel() const
+{
+	return GetNumericAttribute(UCrunchHeroAttributeSet::GetLevelAttribute()) >= GetNumericAttribute(UCrunchHeroAttributeSet::GetMaxLevelAttribute());
+}
+
+
+void UCrunchAbilitySystemComponent::Server_UpgradeAbilityWithInputID_Implementation(ECrunchAbilityInputID InputID)
+{
+	bool bFound = false;
+	float UpgradePoint = GetGameplayAttributeValue(UCrunchHeroAttributeSet::GetUpgradePointAttribute(), bFound);
+	if (!bFound || UpgradePoint <= 0) return;
+
+	FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromInputID((int32)InputID);
+	if (!AbilitySpec || UCrunchAbilitySystemStatics::IsAbilityAtMaxLevel(*AbilitySpec)) return;
+
+	SetNumericAttributeBase(UCrunchHeroAttributeSet::GetUpgradePointAttribute(), UpgradePoint - 1);
+	AbilitySpec->Level += 1;
+	MarkAbilitySpecDirty(*AbilitySpec);
+	Client_AbilityLevelUpdated(AbilitySpec->Handle, AbilitySpec->Level);
+}
+
+bool UCrunchAbilitySystemComponent::Server_UpgradeAbilityWithInputID_Validate(ECrunchAbilityInputID InputID)
+{
+	return true;
+}
+
+void UCrunchAbilitySystemComponent::Client_AbilityLevelUpdated_Implementation(FGameplayAbilitySpecHandle Handle, int NewLevel)
+{
+	if (FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(Handle))
+	{
+		AbilitySpec->Level = NewLevel;
+		AbilitySpecDirtiedCallbacks.Broadcast(*AbilitySpec);
 	}
 }

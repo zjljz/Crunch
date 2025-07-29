@@ -18,7 +18,7 @@ UAbility_Combo::UAbility_Combo()
 }
 
 void UAbility_Combo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-                                const FGameplayEventData* TriggerEventData)
+                                     const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
@@ -51,9 +51,7 @@ void UAbility_Combo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	//等待AnimMontage->AN_SendTargetGroup发送Damage事件.
 	if (HasAuthority(&ActivationInfo))
 	{
-		FGameplayTag ComboDamageEventTag = FGameplayTag::RequestGameplayTag("Ability.Combo.Damage");
-
-		UAbilityTask_WaitGameplayEvent* WaitComboDamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, ComboDamageEventTag);
+		UAbilityTask_WaitGameplayEvent* WaitComboDamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, CrunchGameplayTags::Ability_Combo_Damage);
 
 		WaitComboDamageEventTask->EventReceived.AddDynamic(this, &ThisClass::DoDamage);
 		WaitComboDamageEventTask->ReadyForActivation();
@@ -110,10 +108,12 @@ void UAbility_Combo::TryCommitCombo()
 
 void UAbility_Combo::DoDamage(FGameplayEventData Payload)
 {
-	TArray<FHitResult> Result = GetHitResultsFromSweepLocationTargetData(Payload.TargetData, TargetSweepSphereRadius);
-
-	for (auto& Hit : Result)
+	int HitResultCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Payload.TargetData);
+	
+	for (int i = 0; i < HitResultCount; ++i)
 	{
+		FHitResult Hit = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Payload.TargetData, i);
+		AActor* TestActor = Hit.GetActor();
 		ApplyGEToHitResultActor(Hit, GetComboEffectForCurrentComboName(), GetAbilityLevel());
 	}
 }
@@ -123,8 +123,8 @@ TSubclassOf<UGameplayEffect> UAbility_Combo::GetComboEffectForCurrentComboName()
 	if (UAnimInstance* OwnerAnimInst = GetActorInfo().SkeletalMeshComponent->GetAnimInstance())
 	{
 		FName CurrentSection = OwnerAnimInst->Montage_GetCurrentSection(ComboMontage);
-		const TSubclassOf<UGameplayEffect> GEClass = ComboEffectMap.FindRef(CurrentSection);
-		if (GEClass)
+
+		if (const TSubclassOf<UGameplayEffect> GEClass = ComboEffectMap.FindRef(CurrentSection))
 		{
 			return GEClass;
 		}

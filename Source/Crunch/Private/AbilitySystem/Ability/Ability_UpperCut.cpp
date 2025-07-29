@@ -3,6 +3,7 @@
 
 #include "Crunch/Public/AbilitySystem/Ability/Ability_UpperCut.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Crunch/CrunchGameplayTags.h"
@@ -46,14 +47,14 @@ void UAbility_UpperCut::StartLaunching(FGameplayEventData Payload)
 {
 	if (HasAuthority(&CurrentActivationInfo))
 	{
-		TArray<FHitResult> HitResults = GetHitResultsFromSweepLocationTargetData(Payload.TargetData, TargetSweepSphereRadius,
-		                                                                         ETeamAttitude::Hostile, true, true);
+		int HitResultCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Payload.TargetData);
+
 		PushSelf(FVector::UpVector * UpperCutLaunchSpeed); //给自己一个向上的推力.
 
-		for (FHitResult& Hit : HitResults)
+		for (int i = 0; i < HitResultCount; ++i)
 		{
+			FHitResult Hit = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Payload.TargetData, i);
 			PushTarget(Hit.GetActor(), FVector::UpVector * UpperCutLaunchSpeed); //给所有命中的敌人一个向上的推力.
-
 			ApplyGEToHitResultActor(Hit, LaunchDamageEffect, GetAbilityLevel()); //对所有命中的敌人应用伤害效果.
 		}
 	}
@@ -110,17 +111,19 @@ void UAbility_UpperCut::HandleComboDamageEvent(FGameplayEventData Payload)
 {
 	if (HasAuthority(&CurrentActivationInfo))
 	{
-		TArray<FHitResult> HitResults = GetHitResultsFromSweepLocationTargetData(Payload.TargetData, TargetSweepSphereRadius,
-		                                                                         ETeamAttitude::Hostile, true, true);
 		PushSelf(FVector::UpVector * UpperCutLaunchSpeed * 0.1f); //给自己一个向上的推力.
 
 		const FGenericDamageEffectDef* DamageEffectDef = GetComboDamageEffectDef();
 		if (!DamageEffectDef) return;
-		
-		for (FHitResult& Hit : HitResults)
+
+
+		int HitResultCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Payload.TargetData);
+
+		for (int i = 0; i < HitResultCount; ++i)
 		{
+			FHitResult Hit = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Payload.TargetData, i);
 			FVector PushVel = GetAvatarActorFromActorInfo()->GetActorTransform().TransformVector(DamageEffectDef->PushVelocity);
-			
+
 			PushTarget(Hit.GetActor(), PushVel); //给所有命中的敌人一个向上的推力.
 
 			ApplyGEToHitResultActor(Hit, DamageEffectDef->DamageEffect, GetAbilityLevel()); //对所有命中的敌人应用伤害效果.

@@ -30,7 +30,7 @@ void UCrunchAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute
 
 	if (Attribute == GetManaAttribute())
 	{
-		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxMana());	
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxMana());
 	}
 }
 
@@ -41,11 +41,33 @@ void UCrunchAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+		SetCachedHealthPercent(GetHealth() / GetMaxHealth());
 	}
 
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
+		SetCachedManaPercent(GetMana() / GetMaxMana());
+	}
+}
+
+void UCrunchAttributeSet::RescaleHealth()
+{
+	if (!GetOwningActor()->HasAuthority()) return;
+
+	if (GetCachedHealthPercent() != 0 && GetHealth() != 0)
+	{
+		SetHealth(GetCachedHealthPercent() * GetMaxHealth());
+	}
+}
+
+void UCrunchAttributeSet::RescaleMana()
+{
+	if (!GetOwningActor()->HasAuthority()) return;
+
+	if (GetCachedManaPercent() != 0 && GetMana() != 0)
+	{
+		SetMana(GetCachedManaPercent() * GetMaxMana());
 	}
 }
 

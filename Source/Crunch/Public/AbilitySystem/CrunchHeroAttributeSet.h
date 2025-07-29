@@ -24,9 +24,11 @@ public:
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, Strength);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, StrengthGrowRate);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, Experience);
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, MaxLevelExperience);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, PreLevelExperience);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, NextLevelExperience);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, Level);
+	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, UpgradePoint);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, MaxLevel);
 	ATTRIBUTE_ACCESSORS_BASIC(UCrunchHeroAttributeSet, Gold);
 
@@ -46,6 +48,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Experience)
 	FGameplayAttributeData Experience;
 
+	UPROPERTY(ReplicatedUsing = OnRep_MaxLevelExperience)
+	FGameplayAttributeData MaxLevelExperience;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_PreLevelExperience)
 	FGameplayAttributeData PreLevelExperience;
 
@@ -55,6 +60,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Level)
 	FGameplayAttributeData Level;
 
+	UPROPERTY(ReplicatedUsing = OnRep_UpgradePoint)
+	FGameplayAttributeData UpgradePoint;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_MaxLevel)
 	FGameplayAttributeData MaxLevel;
 
@@ -77,6 +85,9 @@ private:
 	void OnRep_Experience(const FGameplayAttributeData& OldVal);
 
 	UFUNCTION()
+	void OnRep_MaxLevelExperience(const FGameplayAttributeData& OldVal);
+	
+	UFUNCTION()
 	void OnRep_PreLevelExperience(const FGameplayAttributeData& OldVal);
 
 	UFUNCTION()
@@ -85,6 +96,9 @@ private:
 	UFUNCTION()
 	void OnRep_Level(const FGameplayAttributeData& OldVal);
 
+	UFUNCTION()
+	void OnRep_UpgradePoint(const FGameplayAttributeData& OldVal);
+	
 	UFUNCTION()
 	void OnRep_MaxLevel(const FGameplayAttributeData& OldVal);
 

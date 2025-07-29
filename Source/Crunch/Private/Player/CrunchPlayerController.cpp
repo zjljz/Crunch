@@ -3,10 +3,14 @@
 
 #include "Player/CrunchPlayerController.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/CrunchPlayerCharacter.h"
 #include "Widgets/GameplayWidget.h"
+
+class UEnhancedInputLocalPlayerSubsystem;
 
 void ACrunchPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -32,11 +36,27 @@ void ACrunchPlayerController::AcknowledgePossession(APawn* P)
 	Super::AcknowledgePossession(P);
 
 	OwnedCharacter = Cast<ACrunchPlayerCharacter>(P);
-	
+
 	if (OwnedCharacter)
 	{
 		OwnedCharacter->ClientInit();
 		SpawnGameplayWidget();
+	}
+}
+
+void ACrunchPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (UEnhancedInputLocalPlayerSubsystem* EnhancedInputSubsystem = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+	{
+		EnhancedInputSubsystem->RemoveMappingContext(IMC_UI);
+		EnhancedInputSubsystem->AddMappingContext(IMC_UI, 1);
+	}
+	
+	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		EnhancedInput->BindAction(IA_ToggleShop, ETriggerEvent::Triggered, this, &ThisClass::ToggleShop);
 	}
 }
 
@@ -50,4 +70,12 @@ void ACrunchPlayerController::SpawnGameplayWidget()
 	GameplayWidget = CreateWidget<UGameplayWidget>(this, GameplayWidgetClass);
 	GameplayWidget->AddToViewport();
 	GameplayWidget->ConfigureAbilities(OwnedCharacter->GetAbilities());
+}
+
+void ACrunchPlayerController::ToggleShop()
+{
+	if (GameplayWidget)
+	{
+		GameplayWidget->ToggleShopVisible();
+	}
 }
