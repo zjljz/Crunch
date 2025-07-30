@@ -9,8 +9,9 @@
 class UShopItemAsset;
 class UItemToolTip;
 class UImage;
+
 /**
- * 
+ *  库存系统 用于Item在 Shop/Bag/装备栏 中的Widget基类, 自带一个Img显示物品图片以及TooltipWidget.
  */
 UCLASS()
 class CRUNCH_API UInventoryItemWidget : public UUserWidget
@@ -29,9 +30,9 @@ protected:
 	virtual void OnLeftMouseButtonClicked();
 	virtual void OnRightMouseButtonClicked();
 
-	//创建ToolTip 并初始化.
+	//创建ToolTip,初始化,并设置到Tooltip.
 	UItemToolTip* CreateToolTipWidget(const UShopItemAsset* Item);
-	
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Img_ItemIcon;

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameplayWidget.generated.h"
 
+class UInventoryWidget;
 class UInventoryShopWidget;
 class UStatsGauge;
 class UAbilityListView;
@@ -66,6 +67,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UInventoryShopWidget> ShopWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UInventoryWidget> InventoryWidget;
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<UWidgetAnimation> ShopPopAnim;
