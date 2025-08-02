@@ -24,6 +24,12 @@ public:
 	//获取所有加载的PrimaryAsset.
 	bool GetLoadedShopItems(TArray<const UShopItemAsset*>& OutItems) const;
 
+	//获取特定Item可以合成的Items.
+	const FItemCollection* GetCombinationForItem(const UShopItemAsset* Item);
+
+	//获取合成特定Item的子Item.
+	const FItemCollection* GetIngredientForItem(const UShopItemAsset* Item);
+	
 private:
 	void OnShopItemLoadFinished(FStreamableDelegate Callback);
 

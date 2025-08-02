@@ -6,12 +6,13 @@
 #include "Components/TileView.h"
 #include "Framework/CrunchAssetManager.h"
 #include "Inventory/InventoryComponent.h"
+#include "Widgets/ItemTreeWidget.h"
 #include "Widgets/ShopItemWidget.h"
 
 void UInventoryShopWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
+
 	SetIsFocusable(true);
 	LoadShopItems();
 	ShopItemList->OnEntryWidgetGenerated().AddUObject(this, &ThisClass::OnShopItemWidgetGenerated);
@@ -46,7 +47,15 @@ void UInventoryShopWidget::OnShopItemWidgetGenerated(UUserWidget& NewWidget)
 		{
 			ItemWidget->OnItemBuyIssued.AddUObject(OwnerInventoryComp, &UInventoryComponent::TryBuySth);
 		}
-		
+		ItemWidget->OnShopItemSelected.AddUObject(this, &ThisClass::ShowItemCombination);
 		ItemsMap.Add(ItemWidget->GetShopItem(), ItemWidget);
+	}
+}
+
+void UInventoryShopWidget::ShowItemCombination(const UShopItemWidget* ItemWidget)
+{
+	if (CombinationTree)
+	{
+		CombinationTree->DrawFromNode(ItemWidget);
 	}
 }

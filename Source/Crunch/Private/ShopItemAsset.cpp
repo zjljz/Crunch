@@ -3,14 +3,14 @@
 
 #include "ShopItemAsset.h"
 
+#include "Abilities/GameplayAbility.h"
+
 FItemCollection::FItemCollection()
 {
-	
 }
 
 FItemCollection::FItemCollection(const TArray<const UShopItemAsset*>& InItems) : Items(InItems)
 {
-	
 }
 
 void FItemCollection::AddItem(const UShopItemAsset* NewItem, bool bAddUnique)
@@ -38,4 +38,14 @@ FPrimaryAssetType UShopItemAsset::GetShopItemAssetType()
 UTexture2D* UShopItemAsset::GetItemIcon() const
 {
 	return ItemSoftIcon.LoadSynchronous();
+}
+
+UGameplayAbility* UShopItemAsset::GetGrantedAbilityCDO() const
+{
+	if (GetGrantedAbility())
+	{
+		return GetGrantedAbility()->GetDefaultObject<UGameplayAbility>();
+	}
+
+	return nullptr;
 }

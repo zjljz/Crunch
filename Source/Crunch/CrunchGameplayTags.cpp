@@ -43,6 +43,9 @@ namespace CrunchGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_CameraShake, "GameplayCue.CameraShake", "屏幕震动的GameplayCue")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_GroundBlast, "GameplayCue.GroundBlast", "地面爆炸的GameplayCue");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Test_Cooldown, "Ability.Test.Cooldown", "用作测试的Cooldown Tag");
+
+	
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{
 		const UGameplayTagsManager& Manager = UGameplayTagsManager::Get();

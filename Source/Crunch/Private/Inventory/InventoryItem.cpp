@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "ShopItemAsset.h"
+#include "AbilitySystem/CrunchAbilitySystemStatics.h"
 
 FInventoryItemHandle::FInventoryItemHandle() : HandleId(GetInvalidId())
 {
@@ -54,34 +55,64 @@ UInventoryItem::UInventoryItem() : StackCount(1), SlotIndex(-1)
 {
 }
 
-void UInventoryItem::InitItem(const FInventoryItemHandle& NewHandle, const UShopItemAsset* NewShopItem)
+void UInventoryItem::InitItem(const FInventoryItemHandle& NewHandle, const UShopItemAsset* NewShopItem, UAbilitySystemComponent* InASC)
 {
 	ItemHandle = NewHandle;
 	ShopItem = NewShopItem;
+
+	OwnerASC = InASC;
+	ApplyGASModifications();
 }
 
-void UInventoryItem::ApplyGASModifications(UAbilitySystemComponent* ASC)
+void UInventoryItem::ApplyGASModifications()
 {
-	if (!GetShopItem() || !ASC) return;
+	if (!GetShopItem() || !OwnerASC) return;
 
-	if (!ASC->GetOwner() || !ASC->GetOwner()->HasAuthority()) return;
+	if (!OwnerASC->GetOwner() || !OwnerASC->GetOwner()->HasAuthority()) return;
 
 	if (TSubclassOf<UGameplayEffect> EquipEffectClass = GetShopItem()->GetEquippedEffect())
 	{
-		ActiveGEHandle = ASC->BP_ApplyGameplayEffectToSelf(EquipEffectClass, 1.f, ASC->MakeEffectContext());
+		EquippedGEHandle = OwnerASC->BP_ApplyGameplayEffectToSelf(EquipEffectClass, 1.f, OwnerASC->MakeEffectContext());
 	}
 
 	if (TSubclassOf<UGameplayAbility> GAClass = GetShopItem()->GetGrantedAbility())
 	{
-		FGameplayAbilitySpec* FoundAbilitySpec = ASC->FindAbilitySpecFromClass(GAClass);
-		if (FoundAbilitySpec)
-		{
-			GrantedAbilitySpecHandle = FoundAbilitySpec->Handle;
-		}
-		else
-		{
-			GrantedAbilitySpecHandle = ASC->GiveAbility(FGameplayAbilitySpec(GAClass));
-		}
+		//@todo: 如果这里添加了相同的Item, 会重复授予相同的Ability.
+		GrantedAbilitySpecHandle = OwnerASC->GiveAbility(FGameplayAbilitySpec(GAClass));
+	}
+}
+
+void UInventoryItem::ApplyConsumeEffect()
+{
+	if (!ShopItem) return;
+
+	if (TSubclassOf<UGameplayEffect> ConsumeEffectClass = GetShopItem()->GetConsumeEffect())
+	{
+		ConsumeGEHandle = OwnerASC->BP_ApplyGameplayEffectToSelf(ConsumeEffectClass, 1.f, OwnerASC->MakeEffectContext());
+	}
+}
+
+bool UInventoryItem::TryActivateGrantedAbility() const
+{
+	if (!GrantedAbilitySpecHandle.IsValid()) return false;
+
+	if (OwnerASC && OwnerASC->TryActivateAbility(GrantedAbilitySpecHandle)) return true;
+
+	return false;
+}
+
+void UInventoryItem::RemoveGASModification()
+{
+	if (!OwnerASC) return;
+
+	if (EquippedGEHandle.IsValid())
+	{
+		OwnerASC->RemoveActiveGameplayEffect(EquippedGEHandle);
+	}
+
+	if (GrantedAbilitySpecHandle.IsValid())
+	{
+		OwnerASC->SetRemoveAbilityOnEnd(GrantedAbilitySpecHandle);
 	}
 }
 
@@ -131,4 +162,29 @@ bool UInventoryItem::SetStackCount(int NewStackCount)
 	}
 
 	return false;
+}
+
+bool UInventoryItem::IsGrantedAnyAbility() const
+{
+	return GetShopItem() && GetShopItem()->GetGrantedAbility() && GrantedAbilitySpecHandle.IsValid();
+}
+
+float UInventoryItem::GetAbilityCooldownTimeRemaining() const
+{
+	if (!IsGrantedAnyAbility()) return 0.f;
+	
+	return UCrunchAbilitySystemStatics::GetCooldownRemainingForAbility(GetShopItem()->GetGrantedAbilityCDO(), *OwnerASC);
+}
+
+float UInventoryItem::GetAbilityCooldownDuration() const
+{
+	if (!IsGrantedAnyAbility()) return 0.f;
+	
+	return UCrunchAbilitySystemStatics::GetCooldownDurationForAbility(GetShopItem()->GetGrantedAbilityCDO(), *OwnerASC, 1);
+}
+
+float UInventoryItem::GetAbilityManaCost() const
+{
+	if (!IsGrantedAnyAbility()) return 0.f;
+	return UCrunchAbilitySystemStatics::GetManaCostForAbility(GetShopItem()->GetGrantedAbilityCDO(), *OwnerASC, 1);
 }

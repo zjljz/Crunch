@@ -52,6 +52,8 @@ public:
 	FORCEINLINE TSubclassOf<UGameplayEffect> GetConsumeEffect() const { return ConsumeEffect; }
 	FORCEINLINE TSubclassOf<UGameplayAbility> GetGrantedAbility() const { return GrantedAbility; }
 
+	UGameplayAbility* GetGrantedAbilityCDO() const;
+	
 	FORCEINLINE bool GetIsStackable() const { return bIsStackable; }
 	FORCEINLINE bool GetIsConsumable() const { return bIsConsumable; }
 	FORCEINLINE int GetMaxStackCount() const { return MaxStackCount; }

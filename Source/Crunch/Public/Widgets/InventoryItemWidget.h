@@ -11,7 +11,7 @@ class UItemToolTip;
 class UImage;
 
 /**
- *  库存系统 用于Item在 Shop/Bag/装备栏 中的Widget基类, 自带一个Img显示物品图片以及TooltipWidget.
+ *  用于Item在 Shop/Bag/装备栏 中的Widget基类, 自带一个Img显示物品图片以及TooltipWidget.
  */
 UCLASS()
 class CRUNCH_API UInventoryItemWidget : public UUserWidget
@@ -22,6 +22,8 @@ public:
 	virtual void NativeConstruct() override;
 
 	virtual void SetItemIcon(UTexture2D* NewTexture);
+
+	FORCEINLINE UImage* GetItemIcon() const { return Img_ItemIcon; }
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

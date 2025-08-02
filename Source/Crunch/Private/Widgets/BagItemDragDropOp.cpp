@@ -6,7 +6,6 @@
 
 void UBagItemDragDropOp::SetDragItem(UBagItemWidget* DragWidget)
 {
-	//这里的作用是 在拖动时 会有一个Widget跟随鼠标 这里就是为了创建那个Widget.
 	Payload = DragWidget;
 	if (DragVisualClass)
 	{

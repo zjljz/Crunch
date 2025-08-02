@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "InventoryShopWidget.generated.h"
 
+class UItemTreeWidget;
 class UInventoryComponent;
 class UShopItemAsset;
 class UShopItemWidget;
@@ -30,10 +31,15 @@ private:
 	
 	void OnShopItemWidgetGenerated(UUserWidget& NewWidget);
 
+	void ShowItemCombination(const UShopItemWidget* ItemWidget);
+	
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTileView> ShopItemList;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UItemTreeWidget> CombinationTree;
+	
 	UPROPERTY()
 	TMap<const UShopItemAsset*, const UShopItemWidget*> ItemsMap;
 

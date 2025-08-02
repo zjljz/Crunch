@@ -56,11 +56,18 @@ public:
 	UInventoryItem();
 
 	//一般是在Server创建Item后 传递一个Handle给Client初始化
-	void InitItem(const FInventoryItemHandle& NewHandle, const UShopItemAsset* NewShopItem);
+	void InitItem(const FInventoryItemHandle& NewHandle, const UShopItemAsset* NewShopItem, UAbilitySystemComponent* InASC);
 
 	//调用Item自带的GE或要授予的Ability.
-	void ApplyGASModifications(UAbilitySystemComponent* ASC);
-	
+	void ApplyGASModifications();
+	void ApplyConsumeEffect();
+
+	//尝试激活授予的Ability.
+	bool TryActivateGrantedAbility() const;
+
+	//移除EquippedGE 以及 GrantedGA.
+	void RemoveGASModification();
+
 	bool IsValid() const;
 
 	//设置Item在装备栏/背包的位置.
@@ -76,6 +83,12 @@ public:
 	bool ReduceStackCount();
 
 	bool SetStackCount(int NewStackCount);
+
+	bool IsGrantedAnyAbility() const;
+	
+	float GetAbilityCooldownTimeRemaining() const;
+	float GetAbilityCooldownDuration() const;
+	float GetAbilityManaCost() const;
 	
 	FORCEINLINE const UShopItemAsset* GetShopItem() const { return ShopItem; }
 	FORCEINLINE FInventoryItemHandle GetHandle() const { return ItemHandle; }
@@ -85,16 +98,22 @@ private:
 	//这个Item对应的资产.
 	UPROPERTY()
 	TObjectPtr<const UShopItemAsset> ShopItem;
-	
+
 	UPROPERTY()
 	FInventoryItemHandle ItemHandle;
+
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> OwnerASC;
 
 	int StackCount;
 	int SlotIndex;
 
-	//
-	FActiveGameplayEffectHandle ActiveGEHandle;
+	//装备对应的GEHandle.
+	FActiveGameplayEffectHandle EquippedGEHandle;
 
-	//
+	//消耗品对应的GEHandle, 一般消耗品都是Duration/InstanceGE 可能不需要这个Handle去取消.
+	FActiveGameplayEffectHandle ConsumeGEHandle;
+
+	//装备自带的Ability授予后的Handle.
 	FGameplayAbilitySpecHandle GrantedAbilitySpecHandle;
 };

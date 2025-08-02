@@ -17,6 +17,7 @@ class CRUNCH_API UBagItemDragDropOp : public UDragDropOperation
 	GENERATED_BODY()
 
 public:
+	//在拖动时 会有一个Widget跟随鼠标 这里就是为了创建那个Widget.
 	void SetDragItem(UBagItemWidget* DragWidget);
 
 private:

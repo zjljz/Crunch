@@ -38,6 +38,16 @@ bool UCrunchAssetManager::GetLoadedShopItems(TArray<const UShopItemAsset*>& OutI
 	return bLoaded;
 }
 
+const FItemCollection* UCrunchAssetManager::GetCombinationForItem(const UShopItemAsset* Item)
+{
+	return CombinationMap.Find(Item);
+}
+
+const FItemCollection* UCrunchAssetManager::GetIngredientForItem(const UShopItemAsset* Item)
+{
+	return IngredientMap.Find(Item);
+}
+
 void UCrunchAssetManager::OnShopItemLoadFinished(FStreamableDelegate Callback)
 {
 	Callback.ExecuteIfBound();
@@ -77,7 +87,7 @@ void UCrunchAssetManager::AddToCombinationMap(const UShopItemAsset* IngredientIt
 	{
 		if (!CombinationMap[IngredientItem].Contain(CombinationItem))
 		{
-			CombinationMap.Find(IngredientItem)->AddItem(CombinationItem);
+			Combinations->AddItem(CombinationItem);
 		}
 	}
 	else

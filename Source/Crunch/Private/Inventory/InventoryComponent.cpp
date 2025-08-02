@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "ShopItemAsset.h"
 #include "AbilitySystem/CrunchHeroAttributeSet.h"
+#include "Framework/CrunchAssetManager.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -57,6 +58,19 @@ UInventoryItem* UInventoryComponent::GetInventoryItemByHandle(const FInventoryIt
 	return nullptr;
 }
 
+void UInventoryComponent::TryActivateItem(const FInventoryItemHandle& ItemHandle)
+{
+	UInventoryItem* Item = GetInventoryItemByHandle(ItemHandle);
+	if (!Item) return;
+
+	Server_ActivateItem(ItemHandle);
+}
+
+void UInventoryComponent::SellItem(const FInventoryItemHandle& Handle)
+{
+	Server_SellItem(Handle);
+}
+
 bool UInventoryComponent::IsAllSlotFull() const
 {
 	return InventoryMap.Num() >= GetCapacity();
@@ -89,6 +103,44 @@ UInventoryItem* UInventoryComponent::GetAvailableStackForItem(const UShopItemAss
 	return nullptr;
 }
 
+bool UInventoryComponent::FoundIngredientForItem(const UShopItemAsset* Item, TArray<UInventoryItem*>& OutIngredients, const TArray<const UShopItemAsset*>& IngredientToIgnore)
+{
+	const FItemCollection* ItemIngredients = UCrunchAssetManager::Get().GetIngredientForItem(Item);
+	if (!ItemIngredients) return false;
+
+	bool bAllFound = true;
+	for (const UShopItemAsset* IngredientAsset : ItemIngredients->GetItems())
+	{
+		if (IngredientToIgnore.Contains(IngredientAsset)) continue;
+
+		UInventoryItem* IngredientItem = TryGetItemByShopItemAsset(IngredientAsset);
+		if (!IngredientItem)
+		{
+			bAllFound = false;
+			break;;
+		}
+		OutIngredients.Add(IngredientItem);
+	}
+
+	return bAllFound;
+}
+
+UInventoryItem* UInventoryComponent::TryGetItemByShopItemAsset(const UShopItemAsset* ItemAsset) const
+{
+	if (ItemAsset)
+	{
+		for (auto Pair : InventoryMap)
+		{
+			if (Pair.Value && Pair.Value->GetShopItem() == ItemAsset)
+			{
+				return Pair.Value;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
 void UInventoryComponent::Server_BuySth_Implementation(const UShopItemAsset* ItemToBuy)
 {
 	//@todo: 这里不管是购买失败 还是购买成功 应该都需要一个Log 或者更多.
@@ -96,14 +148,55 @@ void UInventoryComponent::Server_BuySth_Implementation(const UShopItemAsset* Ite
 
 	if (GetGold() < ItemToBuy->GetPrice()) return;
 
-	if (IsFullForItem(ItemToBuy)) return;
+	if (!IsFullForItem(ItemToBuy))
+	{
+		OwnerASC->ApplyModToAttribute(UCrunchHeroAttributeSet::GetGoldAttribute(), EGameplayModOp::Additive, -ItemToBuy->GetPrice());
+		GrantItem(ItemToBuy);
+		return;
+	}
 
-	OwnerASC->ApplyModToAttribute(UCrunchHeroAttributeSet::GetGoldAttribute(), EGameplayModOp::Additive, -ItemToBuy->GetPrice());
-
-	GrantItem(ItemToBuy);
+	if (TryItemCombination(ItemToBuy))
+	{
+		OwnerASC->ApplyModToAttribute(UCrunchHeroAttributeSet::GetGoldAttribute(), EGameplayModOp::Additive, -ItemToBuy->GetPrice());
+	}
 }
 
 bool UInventoryComponent::Server_BuySth_Validate(const UShopItemAsset* ItemToBuy)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_ActivateItem_Implementation(FInventoryItemHandle ItemHandle)
+{
+	UInventoryItem* Item = GetInventoryItemByHandle(ItemHandle);
+	if (!Item) return;
+
+	Item->TryActivateGrantedAbility();
+	const UShopItemAsset* ItemAsset = Item->GetShopItem();
+	if (ItemAsset->GetIsConsumable())
+	{
+		ConsumeItem(Item);
+	}
+}
+
+bool UInventoryComponent::Server_ActivateItem_Validate(FInventoryItemHandle ItemHandle)
+{
+	return true;
+}
+
+void UInventoryComponent::Server_SellItem_Implementation(FInventoryItemHandle ItemHandle)
+{
+	UInventoryItem* Item = GetInventoryItemByHandle(ItemHandle);
+
+	if (!Item || !Item->IsValid()) return;
+
+	float SellPrice = Item->GetShopItem()->GetSellPrice();
+
+	OwnerASC->ApplyModToAttribute(UCrunchHeroAttributeSet::GetGoldAttribute(), EGameplayModOp::Additive, SellPrice * Item->GetStackCount());
+	RemoveItem(Item);
+}
+
+bool UInventoryComponent::Server_SellItem_Validate(FInventoryItemHandle ItemHandle)
 {
 	return true;
 }
@@ -120,10 +213,15 @@ void UInventoryComponent::GrantItem(const UShopItemAsset* NewItem)
 	}
 	else
 	{
+		if (TryItemCombination(NewItem))
+		{
+			return;
+		}
+
 		UInventoryItem* InventoryItem = NewObject<UInventoryItem>();
 		FInventoryItemHandle NewHandle = FInventoryItemHandle::CreateHandle();
 
-		InventoryItem->InitItem(NewHandle, NewItem);
+		InventoryItem->InitItem(NewHandle, NewItem, OwnerASC);
 		InventoryMap.Add(NewHandle, InventoryItem);
 		OnItemAdd.Broadcast(InventoryItem);
 
@@ -131,8 +229,77 @@ void UInventoryComponent::GrantItem(const UShopItemAsset* NewItem)
 		UE_LOG(LogTemp, Warning, TEXT("Server Add ShopItem : %s, with Id :%d"), *(InventoryItem->GetShopItem()->GetItemName().ToString()), NewHandle.GetHandleId());
 
 		Client_ItemAdded(NewHandle, NewItem);
-		InventoryItem->ApplyGASModifications(OwnerASC);
 	}
+}
+
+void UInventoryComponent::ConsumeItem(UInventoryItem* Item)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+
+	if (!Item) return;
+
+	Item->ApplyConsumeEffect();
+
+	if (!Item->ReduceStackCount())
+	{
+		RemoveItem(Item);
+	}
+	else
+	{
+		OnItemStackCountChanged.Broadcast(Item->GetHandle(), Item->GetStackCount());
+		Client_ItemStackCountChanged(Item->GetHandle(), Item->GetStackCount());
+	}
+}
+
+void UInventoryComponent::RemoveItem(UInventoryItem* ItemToRemove)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+
+	ItemToRemove->RemoveGASModification();
+
+	OnItemRemove.Broadcast(ItemToRemove->GetHandle());
+
+	InventoryMap.Remove(ItemToRemove->GetHandle());
+
+	Client_ItemRemoved(ItemToRemove->GetHandle());
+}
+
+bool UInventoryComponent::TryItemCombination(const UShopItemAsset* NewItemAsset)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
+
+	const FItemCollection* CombinationItems = UCrunchAssetManager::Get().GetCombinationForItem(NewItemAsset);
+	if (!CombinationItems) return false;
+
+	for (const UShopItemAsset* ItemAsset : CombinationItems->GetItems())
+	{
+		TArray<UInventoryItem*> Ingredients;
+		if (!FoundIngredientForItem(ItemAsset, Ingredients, {NewItemAsset}))
+		{
+			continue;
+		}
+
+		for (UInventoryItem* Ingredient : Ingredients)
+		{
+			RemoveItem(Ingredient);
+		}
+
+		GrantItem(ItemAsset);
+		return true;
+	}
+
+	return false;
+}
+
+void UInventoryComponent::Client_ItemRemoved_Implementation(FInventoryItemHandle RemoveItemHandle)
+{
+	if (GetOwner()->HasAuthority()) return;
+
+	UInventoryItem* Item = GetInventoryItemByHandle(RemoveItemHandle);
+	if (!Item) return;
+
+	OnItemRemove.Broadcast(RemoveItemHandle);
+	InventoryMap.Remove(RemoveItemHandle);
 }
 
 void UInventoryComponent::Client_ItemAdded_Implementation(FInventoryItemHandle AssignedHandle, const UShopItemAsset* NewItem)
@@ -140,7 +307,7 @@ void UInventoryComponent::Client_ItemAdded_Implementation(FInventoryItemHandle A
 	if (GetOwner()->HasAuthority()) return;
 
 	UInventoryItem* InventoryItem = NewObject<UInventoryItem>();
-	InventoryItem->InitItem(AssignedHandle, NewItem);
+	InventoryItem->InitItem(AssignedHandle, NewItem, OwnerASC);
 
 	InventoryMap.Add(AssignedHandle, InventoryItem);
 	OnItemAdd.Broadcast(InventoryItem);

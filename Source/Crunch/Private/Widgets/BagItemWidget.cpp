@@ -4,8 +4,10 @@
 #include "Widgets/BagItemWidget.h"
 
 #include "ShopItemAsset.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem.h"
+#include "Widgets/BagItemDragDropOp.h"
 #include "Widgets/ItemToolTip.h"
 
 void UBagItemWidget::NativeConstruct()
@@ -75,4 +77,111 @@ void UBagItemWidget::UpdateStackCount()
 	{
 		Text_StackCount->SetText(FText::AsNumber(Item->GetStackCount()));
 	}
+}
+
+FInventoryItemHandle UBagItemWidget::GetItemHandle() const
+{
+	if (!IsEmpty())
+	{
+		return Item->GetHandle();
+	}
+
+	return FInventoryItemHandle::InvalidHandle();
+}
+
+void UBagItemWidget::StartCooldown(float CooldownDuration, float TimeRemaining)
+{
+	CooldownTimeRemaining = TimeRemaining;
+	CooldownTimeDuration = CooldownDuration;
+	GetWorld()->GetTimerManager().SetTimer(CooldownDurationTimerHandle, this, &UBagItemWidget::CooldownFinished, CooldownTimeRemaining);
+	GetWorld()->GetTimerManager().SetTimer(CooldownUpdateTimerHandle, this, &ThisClass::UpdateCooldown, CooldownUpdateInterval, true);
+
+	Text_CooldownCount->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UBagItemWidget::SetItemIcon(UTexture2D* NewTexture)
+{
+	if (GetItemIcon())
+	{
+		GetItemIcon()->GetDynamicMaterial()->SetTextureParameterValue(IconTextureParamName, NewTexture);
+		return;
+	}
+
+	Super::SetItemIcon(NewTexture);
+}
+
+void UBagItemWidget::CooldownFinished()
+{
+	GetWorld()->GetTimerManager().ClearTimer(CooldownDurationTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(CooldownUpdateTimerHandle);
+
+	Text_CooldownCount->SetVisibility(ESlateVisibility::Hidden);
+	if (GetItemIcon())
+	{
+		GetItemIcon()->GetDynamicMaterial()->SetScalarParameterValue(CooldownAmtParamName, 1.f);
+		GetItemIcon()->GetDynamicMaterial()->SetScalarParameterValue(CanCastParamName, 1.f);
+	}
+}
+
+void UBagItemWidget::UpdateCooldown()
+{
+	CooldownTimeRemaining -= CooldownUpdateInterval;
+	float CooldownAmt = 1.f - CooldownTimeRemaining / CooldownTimeDuration;
+	CooldownNumFormatOp.MaximumFractionalDigits = CooldownTimeRemaining > 1.f ? 0 : 2;
+	Text_CooldownCount->SetText(FText::AsNumber(CooldownTimeRemaining, &CooldownNumFormatOp));
+
+	if (GetItemIcon())
+	{
+		GetItemIcon()->GetDynamicMaterial()->SetScalarParameterValue(CooldownAmtParamName, CooldownAmt);
+	}
+}
+
+void UBagItemWidget::ClearCooldown()
+{
+	CooldownFinished();
+}
+
+void UBagItemWidget::OnLeftMouseButtonClicked()
+{
+	if (!IsEmpty())
+	{
+		OnLeftButtonClicked.Broadcast(GetItemHandle());
+	}
+}
+
+void UBagItemWidget::OnRightMouseButtonClicked()
+{
+	if (!IsEmpty())
+	{
+		OnRightButtonClicked.Broadcast(GetItemHandle());
+	}
+}
+
+void UBagItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
+{
+	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
+
+	if (!IsEmpty() && DragDropOpClass)
+	{
+		if (UBagItemDragDropOp* DragDropOp = NewObject<UBagItemDragDropOp>(this, DragDropOpClass))
+		{
+			DragDropOp->SetDragItem(this);
+			OutOperation = DragDropOp;
+		}
+	}
+}
+
+bool UBagItemWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+	//这里先获取被拖动的那个Widget.
+	if (UBagItemWidget* OtherWidget = Cast<UBagItemWidget>(InOperation->Payload))
+	{
+		if (OtherWidget && !OtherWidget->IsEmpty())
+		{
+			OnBagItemDropped.Broadcast(this, OtherWidget);
+			return true;
+		}
+	}
+
+	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
 }
