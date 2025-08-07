@@ -7,9 +7,12 @@
 #include "GameplayAbilitySpecHandle.h"
 #include "InventoryItem.generated.h"
 
+struct FOnAttributeChangeData;
 struct FGameplayAbilitySpec;
 class UAbilitySystemComponent;
 class UShopItemAsset;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAbilityCanCastUpdateDelegate, bool /* bCanCast */);
 
 /**
  *  用来在网络中传输的 Handle, 避免直接传输UInventoryItem
@@ -68,6 +71,8 @@ public:
 	//移除EquippedGE 以及 GrantedGA.
 	void RemoveGASModification();
 
+	void OnManaAttributeUpdate(const FOnAttributeChangeData& Data);
+
 	bool IsValid() const;
 
 	//设置Item在装备栏/背包的位置.
@@ -85,14 +90,21 @@ public:
 	bool SetStackCount(int NewStackCount);
 
 	bool IsGrantedAnyAbility() const;
-	
+
 	float GetAbilityCooldownTimeRemaining() const;
 	float GetAbilityCooldownDuration() const;
 	float GetAbilityManaCost() const;
-	
+	bool CanCastAbility() const;
+	FGameplayAbilitySpecHandle GetGrantedAbilitySpecHandle() const { return GrantedAbilitySpecHandle; }
+	void SetGrantedAbilitySpecHandle(FGameplayAbilitySpecHandle SpecHandle) { GrantedAbilitySpecHandle = SpecHandle; };
+
 	FORCEINLINE const UShopItemAsset* GetShopItem() const { return ShopItem; }
 	FORCEINLINE FInventoryItemHandle GetHandle() const { return ItemHandle; }
 	FORCEINLINE int GetStackCount() const { return StackCount; }
+	FORCEINLINE int GetSlotIndex() const { return SlotIndex; }
+
+public:
+	FOnAbilityCanCastUpdateDelegate OnAbilityCanCastUpdate;
 
 private:
 	//这个Item对应的资产.

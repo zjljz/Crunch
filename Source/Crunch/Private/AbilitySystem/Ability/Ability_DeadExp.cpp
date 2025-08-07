@@ -30,7 +30,7 @@ void UAbility_DeadExp::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (K2_HasAuthority())
 	{
 		AActor* Killer = TriggerEventData->ContextHandle.GetEffectCauser();
-		if (!Killer || !UCrunchAbilitySystemStatics::IsHero(Killer))
+		if (!Killer || !UCrunchAbilitySystemStatics::IsActorHaveTag(Killer, CrunchGameplayTags::Role_Hero))
 		{
 			//@todo: 这里可以添加一个Log 例如: xx被xx Kill.
 			Killer = nullptr;
@@ -101,7 +101,7 @@ TArray<AActor*> UAbility_DeadExp::GetRewardTargets() const
 			IGenericTeamAgentInterface* OtherTeamInterface = Cast<IGenericTeamAgentInterface>(Result.GetActor());
 			if (OtherTeamInterface && OtherTeamInterface->GetTeamAttitudeTowards(*AvatarActor) == ETeamAttitude::Hostile)
 			{
-				if (UCrunchAbilitySystemStatics::IsHero(Result.GetActor()))
+				if (UCrunchAbilitySystemStatics::IsActorHaveTag(Result.GetActor(), CrunchGameplayTags::Role_Hero))
 				{
 					OutActors.Add(Result.GetActor());
 				}

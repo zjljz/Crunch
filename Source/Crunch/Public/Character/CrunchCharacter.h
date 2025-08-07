@@ -8,6 +8,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
 #include "Crunch/Public/AbilitySystem/CrunchAbilitySystemComponent.h"
+#include "Widgets/RenderActor/RenderActorTargetInterface.h"
 #include "CrunchCharacter.generated.h"
 
 class UAIPerceptionStimuliSourceComponent;
@@ -16,7 +17,7 @@ class UCrunchAttributeSet;
 class UCrunchAbilitySystemComponent;
 
 UCLASS()
-class CRUNCH_API ACrunchCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
+class CRUNCH_API ACrunchCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IRenderActorTargetInterface
 {
 	GENERATED_BODY()
 
@@ -27,6 +28,9 @@ public:
 
 	// 当Character被Controller控制时调用 --- 这个函数只在Server上调用.
 	virtual void PossessedBy(AController* NewController) override;
+
+	virtual FVector GetCaptureLocalPosition() const override { return HeadShotCaptureLocalPos; }
+	virtual FRotator GetCaptureLocalRotation() const override { return HeadShotCaptureLocalRot; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -48,7 +52,7 @@ public:
 
 	bool Server_SendGameplayEventToSelf_Validate(FGameplayTag EventTag, const FGameplayEventData& Payload) { return true; }
 	const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const { return CrunchASC->GetAbilities(); }
-	
+
 	void ServerInit();
 	void ClientInit();
 
@@ -58,16 +62,16 @@ public:
 	void OnAttributeMoveSpeedUpdate(const FOnAttributeChangeData& Data);
 	void OnAttributeMaxHealthUpdate(const FOnAttributeChangeData& Data);
 	void OnAttributeMaxManaUpdate(const FOnAttributeChangeData& Data);
-	
+
 	//当AimTag的数量发生变化时调用.
 	void OnAimTagUpdate(const FGameplayTag Tag, int32 NewCount);
-	
+
 	//当DeadTag的数量发生变化时调用.
 	void OnDeadTagUpDate(const FGameplayTag Tag, int32 NewCount);
 
 	//当StunTag的数量发生变化时调用.
 	void OnStunTagUpdate(const FGameplayTag Tag, int32 NewCount);
-	
+
 	//检查身上是否有dead的Tag来判断是否死亡.
 	bool IsDead() const;
 
@@ -76,11 +80,13 @@ public:
 
 	void SetIsAiming(bool bIsAiming);
 
-	virtual void OnAimChanged(bool bIsAiming) {};
+	virtual void OnAimChanged(bool bIsAiming)
+	{
+	};
 
 protected:
 	void UpgradeAbilityWithInputID(ECrunchAbilityInputID InputID);
-	
+
 	/**************** End Ability System *****************/
 
 
@@ -132,8 +138,6 @@ private:
 	void SetRagdollEnabled(bool bEnabled);
 
 public:
-
-
 	// 这俩个函数是 Character 和 AI 的通用 Death & ReSpawn 逻辑.
 	void StartDeath();
 	void ReSpawn();
@@ -157,7 +161,6 @@ private:
 	TObjectPtr<UAnimMontage> StunMontage;
 
 public:
-	
 	//分别是开始眩晕和结束眩晕时 子类该覆盖的函数.
 	virtual void OnStartStun()
 	{
@@ -196,4 +199,11 @@ private:
 
 	// 启动/关闭AI感知组件的感知源.
 	void SetAIPerceptionStimuliSourceEnabled(bool bEnabled);
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Head Capture")
+	FVector HeadShotCaptureLocalPos;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Head Capture")
+	FRotator HeadShotCaptureLocalRot;
 };

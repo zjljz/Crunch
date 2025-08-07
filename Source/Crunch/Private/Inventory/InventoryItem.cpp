@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "ShopItemAsset.h"
 #include "AbilitySystem/CrunchAbilitySystemStatics.h"
+#include "AbilitySystem/CrunchAttributeSet.h"
 
 FInventoryItemHandle::FInventoryItemHandle() : HandleId(GetInvalidId())
 {
@@ -61,6 +62,10 @@ void UInventoryItem::InitItem(const FInventoryItemHandle& NewHandle, const UShop
 	ShopItem = NewShopItem;
 
 	OwnerASC = InASC;
+	if (OwnerASC)
+	{
+		OwnerASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetManaAttribute()).AddUObject(this, &ThisClass::OnManaAttributeUpdate);
+	}
 	ApplyGASModifications();
 }
 
@@ -105,15 +110,25 @@ void UInventoryItem::RemoveGASModification()
 {
 	if (!OwnerASC) return;
 
-	if (EquippedGEHandle.IsValid())
-	{
-		OwnerASC->RemoveActiveGameplayEffect(EquippedGEHandle);
-	}
+	OwnerASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetManaAttribute()).RemoveAll(this);
 
-	if (GrantedAbilitySpecHandle.IsValid())
+	if (OwnerASC->GetOwner() && OwnerASC->GetOwner()->HasAuthority())
 	{
-		OwnerASC->SetRemoveAbilityOnEnd(GrantedAbilitySpecHandle);
+		if (EquippedGEHandle.IsValid())
+		{
+			OwnerASC->RemoveActiveGameplayEffect(EquippedGEHandle);
+		}
+
+		if (GrantedAbilitySpecHandle.IsValid())
+		{
+			OwnerASC->SetRemoveAbilityOnEnd(GrantedAbilitySpecHandle);
+		}
 	}
+}
+
+void UInventoryItem::OnManaAttributeUpdate(const FOnAttributeChangeData& Data)
+{
+	OnAbilityCanCastUpdate.Broadcast(CanCastAbility());
 }
 
 bool UInventoryItem::IsValid() const
@@ -166,20 +181,20 @@ bool UInventoryItem::SetStackCount(int NewStackCount)
 
 bool UInventoryItem::IsGrantedAnyAbility() const
 {
-	return GetShopItem() && GetShopItem()->GetGrantedAbility() && GrantedAbilitySpecHandle.IsValid();
+	return GetShopItem() && GetShopItem()->GetGrantedAbility();
 }
 
 float UInventoryItem::GetAbilityCooldownTimeRemaining() const
 {
 	if (!IsGrantedAnyAbility()) return 0.f;
-	
+
 	return UCrunchAbilitySystemStatics::GetCooldownRemainingForAbility(GetShopItem()->GetGrantedAbilityCDO(), *OwnerASC);
 }
 
 float UInventoryItem::GetAbilityCooldownDuration() const
 {
 	if (!IsGrantedAnyAbility()) return 0.f;
-	
+
 	return UCrunchAbilitySystemStatics::GetCooldownDurationForAbility(GetShopItem()->GetGrantedAbilityCDO(), *OwnerASC, 1);
 }
 
@@ -187,4 +202,16 @@ float UInventoryItem::GetAbilityManaCost() const
 {
 	if (!IsGrantedAnyAbility()) return 0.f;
 	return UCrunchAbilitySystemStatics::GetManaCostForAbility(GetShopItem()->GetGrantedAbilityCDO(), *OwnerASC, 1);
+}
+
+bool UInventoryItem::CanCastAbility() const
+{
+	if (!IsGrantedAnyAbility() || !OwnerASC) return false;
+
+	if (FGameplayAbilitySpec* Spec = OwnerASC->FindAbilitySpecFromHandle(GrantedAbilitySpecHandle))
+	{
+		UCrunchAbilitySystemStatics::CheckAbilityCost(*Spec, *OwnerASC);
+	}
+
+	return UCrunchAbilitySystemStatics::CheckAbilityCostStatic(GetShopItem()->GetGrantedAbilityCDO(), *OwnerASC);
 }

@@ -16,14 +16,14 @@ UCrunchGameplayAbility::UCrunchGameplayAbility()
 }
 
 bool UCrunchGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
-	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+                                                const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	FGameplayAbilitySpec* AbilitySpec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle((Handle));
 	if (AbilitySpec && AbilitySpec->Level <= 0)
 	{
 		return false;
 	}
-	
+
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
@@ -80,7 +80,66 @@ TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetD
 	return OutRet;
 }
 
-void UCrunchGameplayAbility::PushSelf(const FVector& PushVel)
+FGenericTeamId UCrunchGameplayAbility::GetOwnerTeamId() const
+{
+	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+	if (OwnerTeamInterface)
+	{
+		return OwnerTeamInterface->GetGenericTeamId();
+	}
+
+	return FGenericTeamId::NoTeam;
+}
+
+bool UCrunchGameplayAbility::IsOwnerTeamAttitudeTowards(const AActor* OtherActor, ETeamAttitude::Type TeamAttitude) const
+{
+	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+	if (OwnerTeamInterface && OtherActor)
+	{
+		return OwnerTeamInterface->GetTeamAttitudeTowards(*OtherActor) == TeamAttitude;
+	}
+
+	return false;
+}
+
+AActor* UCrunchGameplayAbility::GetAimTarget(float AimDistance, ETeamAttitude::Type TeamAttitude) const
+{
+	if (AActor* AvatarActor = GetAvatarActorFromActorInfo())
+	{
+		FVector Loc;
+		FRotator Rot;
+
+		AvatarActor->GetActorEyesViewPoint(Loc, Rot);
+		FVector AimEnd = Loc + Rot.Vector() * AimDistance;
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(AvatarActor);
+
+		FCollisionObjectQueryParams ObjectQueryParams;
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		if (bShouldDrawDebug)
+		{
+			DrawDebugLine(GetWorld(), Loc, AimEnd, FColor::Red, false, 2.f, 0, 3.f);
+		}
+
+		TArray<FHitResult> HitResults;
+		if (GetWorld()->LineTraceMultiByObjectType(HitResults, Loc, AimEnd, ObjectQueryParams, Params))
+		{
+			for (FHitResult& Hit : HitResults)
+			{
+				if (IsOwnerTeamAttitudeTowards(Hit.GetActor(), TeamAttitude))
+				{
+					return Hit.GetActor();
+				}
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+void UCrunchGameplayAbility::PushSelf(const FVector& PushVel) const
 {
 	if (ACharacter* AvatarCharacter = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
@@ -88,7 +147,7 @@ void UCrunchGameplayAbility::PushSelf(const FVector& PushVel)
 	}
 }
 
-void UCrunchGameplayAbility::PushTarget(AActor* Target, const FVector& PushVel)
+void UCrunchGameplayAbility::PushTarget(AActor* Target, const FVector& PushVel) const
 {
 	if (!Target)
 	{
@@ -105,7 +164,7 @@ void UCrunchGameplayAbility::PushTarget(AActor* Target, const FVector& PushVel)
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Target, CrunchGameplayTags::Ability_Passive_Launch_Activate, EventData);
 }
 
-void UCrunchGameplayAbility::PushTargets(const TArray<AActor*>& Targets, const FVector& PushVel)
+void UCrunchGameplayAbility::PushTargets(const TArray<AActor*>& Targets, const FVector& PushVel) const
 {
 	for (auto Target : Targets)
 	{
@@ -113,10 +172,28 @@ void UCrunchGameplayAbility::PushTargets(const TArray<AActor*>& Targets, const F
 	}
 }
 
-void UCrunchGameplayAbility::PushTargets(const FGameplayAbilityTargetDataHandle& TargetData, const FVector& PushVel)
+void UCrunchGameplayAbility::PushTargets(const FGameplayAbilityTargetDataHandle& TargetData, const FVector& PushVel) const
 {
 	TArray<AActor*> TargetActors = UAbilitySystemBlueprintLibrary::GetAllActorsFromTargetData(TargetData);
 	PushTargets(TargetActors, PushVel);
+}
+
+void UCrunchGameplayAbility::PlayMontageLocally(UAnimMontage* Montage) const
+{
+	UAnimInstance* OwnerAnimInst = CurrentActorInfo->GetAnimInstance();
+	if (OwnerAnimInst && !OwnerAnimInst->Montage_IsPlaying(Montage))
+	{
+		OwnerAnimInst->Montage_Play(Montage);
+	}
+}
+
+void UCrunchGameplayAbility::StopMontageAfterCurrentSection(UAnimMontage* Montage) const
+{
+	if (UAnimInstance* OwnerAnimInst = CurrentActorInfo->GetAnimInstance())
+	{
+		FName CurSectionName = OwnerAnimInst->Montage_GetCurrentSection(Montage);
+		OwnerAnimInst->Montage_SetNextSection(CurSectionName, NAME_None, Montage);
+	}
 }
 
 void UCrunchGameplayAbility::ApplyGEToHitResultActor(const FHitResult& Hit, TSubclassOf<UGameplayEffect> EffectClass, int EffectLevel)
@@ -125,7 +202,15 @@ void UCrunchGameplayAbility::ApplyGEToHitResultActor(const FHitResult& Hit, TSub
 	FGameplayEffectContextHandle EffectContextHandle = MakeEffectContext(CurrentSpecHandle, CurrentActorInfo);
 	EffectContextHandle.AddHitResult(Hit);
 	EffectSpectHandle.Data->SetContext(EffectContextHandle);
-		
+
 	ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpectHandle,
-									UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(Hit.GetActor()));
+	                                UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(Hit.GetActor()));
+}
+
+void UCrunchGameplayAbility::SendLocalGameplayEvent(const FGameplayTag& EventTag, const FGameplayEventData& Payload)
+{
+	if (UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		OwnerASC->HandleGameplayEvent(EventTag, &Payload);
+	}
 }

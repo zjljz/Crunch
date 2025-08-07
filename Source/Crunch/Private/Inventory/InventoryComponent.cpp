@@ -141,6 +141,18 @@ UInventoryItem* UInventoryComponent::TryGetItemByShopItemAsset(const UShopItemAs
 	return nullptr;
 }
 
+void UInventoryComponent::TryActivateItemInSlot(int SlotIndex)
+{
+	for (TPair<FInventoryItemHandle, UInventoryItem*> Pair : InventoryMap)
+	{
+		if (Pair.Value->GetSlotIndex() == SlotIndex)
+		{
+			Server_ActivateItem(Pair.Key);
+			return;
+		}
+	}
+}
+
 void UInventoryComponent::Server_BuySth_Implementation(const UShopItemAsset* ItemToBuy)
 {
 	//@todo: 这里不管是购买失败 还是购买成功 应该都需要一个Log 或者更多.
@@ -173,6 +185,7 @@ void UInventoryComponent::Server_ActivateItem_Implementation(FInventoryItemHandl
 
 	Item->TryActivateGrantedAbility();
 	const UShopItemAsset* ItemAsset = Item->GetShopItem();
+
 	if (ItemAsset->GetIsConsumable())
 	{
 		ConsumeItem(Item);
@@ -228,7 +241,8 @@ void UInventoryComponent::GrantItem(const UShopItemAsset* NewItem)
 		//@todo: 这里可以添加一个Log.
 		UE_LOG(LogTemp, Warning, TEXT("Server Add ShopItem : %s, with Id :%d"), *(InventoryItem->GetShopItem()->GetItemName().ToString()), NewHandle.GetHandleId());
 
-		Client_ItemAdded(NewHandle, NewItem);
+		FGameplayAbilitySpecHandle GrantedAbilitySpecHandle = InventoryItem->GetGrantedAbilitySpecHandle();
+		Client_ItemAdded(NewHandle, NewItem, GrantedAbilitySpecHandle);
 	}
 }
 
@@ -291,6 +305,20 @@ bool UInventoryComponent::TryItemCombination(const UShopItemAsset* NewItemAsset)
 	return false;
 }
 
+void UInventoryComponent::Client_ItemAdded_Implementation(FInventoryItemHandle AssignedHandle, const UShopItemAsset* NewItem, FGameplayAbilitySpecHandle SpecHandle)
+{
+	if (GetOwner()->HasAuthority()) return;
+
+	UInventoryItem* InventoryItem = NewObject<UInventoryItem>();
+	InventoryItem->InitItem(AssignedHandle, NewItem, OwnerASC);
+	InventoryItem->SetGrantedAbilitySpecHandle(SpecHandle);
+
+	InventoryMap.Add(AssignedHandle, InventoryItem);
+	OnItemAdd.Broadcast(InventoryItem);
+
+	UE_LOG(LogTemp, Warning, TEXT("Client Add ShopItem : %s, with Id :%d"), *(InventoryItem->GetShopItem()->GetItemName().ToString()), AssignedHandle.GetHandleId());
+}
+
 void UInventoryComponent::Client_ItemRemoved_Implementation(FInventoryItemHandle RemoveItemHandle)
 {
 	if (GetOwner()->HasAuthority()) return;
@@ -298,21 +326,10 @@ void UInventoryComponent::Client_ItemRemoved_Implementation(FInventoryItemHandle
 	UInventoryItem* Item = GetInventoryItemByHandle(RemoveItemHandle);
 	if (!Item) return;
 
+	Item->RemoveGASModification();
+
 	OnItemRemove.Broadcast(RemoveItemHandle);
 	InventoryMap.Remove(RemoveItemHandle);
-}
-
-void UInventoryComponent::Client_ItemAdded_Implementation(FInventoryItemHandle AssignedHandle, const UShopItemAsset* NewItem)
-{
-	if (GetOwner()->HasAuthority()) return;
-
-	UInventoryItem* InventoryItem = NewObject<UInventoryItem>();
-	InventoryItem->InitItem(AssignedHandle, NewItem, OwnerASC);
-
-	InventoryMap.Add(AssignedHandle, InventoryItem);
-	OnItemAdd.Broadcast(InventoryItem);
-
-	UE_LOG(LogTemp, Warning, TEXT("Client Add ShopItem : %s, with Id :%d"), *(InventoryItem->GetShopItem()->GetItemName().ToString()), AssignedHandle.GetHandleId());
 }
 
 void UInventoryComponent::Client_ItemStackCountChanged_Implementation(FInventoryItemHandle Handle, int NewCount)

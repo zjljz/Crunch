@@ -10,19 +10,23 @@ namespace CrunchGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Dead, "Stats.Dead", "死亡的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Stun, "Stats.Stun", "眩晕的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Aim, "Stats.Aim", "瞄准的状态")
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Crosshair, "Stats.Crosshair", "瞄准有准星的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Health_Full, "Stats.Health.Full", "生命为满的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Health_Empty, "Stats.Health.Empty", "生命为空的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Mana_Full, "Stats.Mana.Full", "Mana为满的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Mana_Empty, "Stats.Mana.Empty", "Mana为空的状态")
 
+
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Role_Hero, "Role.Hero", "代表这是一个Hero");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attr_Experience, "Attr.Experience", "代表属性中经验的Tag");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attr_Gold, "Attr.Gold", "代表属性中金币的Tag");
-	
+
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_BasicAttack, "Ability.BasicAttack", "Tag for the basic attack ability. This tag is used to identify the basic attack ability in the game.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_BasicAttack_Pressed, "Ability.BasicAttack.Pressed",
 	                               "Tag used for event that will be signed when the basic attack input is pressed. ");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_BasicAttack_Released, "Ability.BasicAttack.Released",
+	                               "Tag used for event that will be signed when the basic attack input is Released. ");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Combo_Damage, "Ability.Combo.Damage",
 	                               "Tag for the combo damage ability. This tag is used to identify the combo damage ability in the game.");
@@ -36,6 +40,12 @@ namespace CrunchGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_UpperCut_Cooldown, "Ability.UpperCut.Cooldown",
 	                               "Tag for UpperCut ability cooldown. This tag is used to manage the cooldown state of the UpperCut ability.");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Shoot, "Ability.Shoot", "The Ability which Shoot Projectile");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Shoot_LeftHand, "Ability.Shoot.LeftHand", "Shoot With Left Hand");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Shoot_RightHand, "Ability.Shoot.RightHand", "Shoot With Right Hand");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Target_Updated, "Target.Updated", "代表目标已经更新的Tag,用于本地更新准星")
+
+
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_GroundBlast_Cooldown, "Ability.GroundBlast.Cooldown",
 	                               "Tag for GroundBlast ability cooldown. This tag is used to manage the cooldown state of the GroundBlast ability.");
 
@@ -45,7 +55,7 @@ namespace CrunchGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Test_Cooldown, "Ability.Test.Cooldown", "用作测试的Cooldown Tag");
 
-	
+
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{
 		const UGameplayTagsManager& Manager = UGameplayTagsManager::Get();

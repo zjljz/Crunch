@@ -66,7 +66,16 @@ void ACrunchPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 				EnhancedInput->BindAction(Pair.Value, ETriggerEvent::Triggered, this, &ACrunchPlayerCharacter::HandleAbilityInput, Pair.Key);
 			}
 		}
+
+		EnhancedInput->BindAction(IA_UseInventoryItem, ETriggerEvent::Triggered, this, &ThisClass::HandleUseInventoryItem);
 	}
+}
+
+void ACrunchPlayerCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
+{
+	OutLocation = ViewCamera->GetComponentLocation();
+	OutRotation = ViewCamera->GetComponentRotation();
+	
 }
 
 void ACrunchPlayerCharacter::SetInputEnabled(bool bEnabled)
@@ -132,9 +141,16 @@ void ACrunchPlayerCharacter::HandleAbilityInput(const FInputActionValue& InputAc
 
 	if (AbilityInputID == ECrunchAbilityInputID::BasicAttack)
 	{
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, CrunchGameplayTags::Ability_BasicAttack_Pressed, FGameplayEventData());
-		Server_SendGameplayEventToSelf(CrunchGameplayTags::Ability_BasicAttack_Pressed, FGameplayEventData());
+		FGameplayTag BasicAttackTag = bPressed ? CrunchGameplayTags::Ability_BasicAttack_Pressed : CrunchGameplayTags::Ability_BasicAttack_Released;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, BasicAttackTag, FGameplayEventData());
+		Server_SendGameplayEventToSelf(BasicAttackTag, FGameplayEventData());
 	}
+}
+
+void ACrunchPlayerCharacter::HandleUseInventoryItem(const FInputActionValue& InputActionValue)
+{
+	int Value = FMath::RoundToInt(InputActionValue.Get<float>());
+	InventoryComp->TryActivateItemInSlot(Value - 1);
 }
 
 void ACrunchPlayerCharacter::OnDeath()
@@ -164,10 +180,7 @@ void ACrunchPlayerCharacter::OnEndStun()
 
 void ACrunchPlayerCharacter::OnAimChanged(bool bIsAiming)
 {
-	if (IsLocallyControlled())
-	{
-		LerpCameraToLocalOffsetLocation(bIsAiming ? CameraAimLocalOffset : FVector::ZeroVector);
-	}
+	LerpCameraToLocalOffsetLocation(bIsAiming ? CameraAimLocalOffset : FVector::ZeroVector);
 }
 
 void ACrunchPlayerCharacter::LerpCameraToLocalOffsetLocation(const FVector& TargetLoc)

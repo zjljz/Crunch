@@ -7,6 +7,7 @@
 #include "Widgets/InventoryItemWidget.h"
 #include "BagItemWidget.generated.h"
 
+class UGameplayAbility;
 class UBagItemDragDropOp;
 class UTextBlock;
 class UBagItemWidget;
@@ -42,6 +43,9 @@ public:
 
 	virtual void SetItemIcon(UTexture2D* NewTexture) override;
 
+	//当ASC中有Ability被Commit时调用.
+	void OnAbilityCommited(UGameplayAbility* Ability);
+
 private:
 	void CooldownFinished();
 
@@ -49,6 +53,11 @@ private:
 
 	void ClearCooldown();
 
+	void UpdateCanCastDisplay(bool bCanCast);
+
+	void BindCanCastDelegate();
+	void UnBindCanCastDelegate();
+	
 protected:
 	virtual void OnLeftMouseButtonClicked() override;
 	virtual void OnRightMouseButtonClicked() override;

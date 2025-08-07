@@ -4,6 +4,7 @@
 #include "Widgets/BagItemWidget.h"
 
 #include "ShopItemAsset.h"
+#include "Abilities/GameplayAbility.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Inventory/InventoryItem.h"
@@ -19,6 +20,8 @@ void UBagItemWidget::NativeConstruct()
 
 void UBagItemWidget::UpdateItemWidget(const UInventoryItem* NewItem)
 {
+	UnBindCanCastDelegate();
+
 	Item = NewItem;
 	if (!Item || !Item->IsValid() || Item->GetStackCount() <= 0)
 	{
@@ -41,6 +44,34 @@ void UBagItemWidget::UpdateItemWidget(const UInventoryItem* NewItem)
 	{
 		Text_StackCount->SetVisibility(ESlateVisibility::Hidden);
 	}
+
+	ClearCooldown();
+	if (Item->IsGrantedAnyAbility())
+	{
+		UpdateCanCastDisplay(Item->CanCastAbility());
+		float AbilityCooldownRemaining = Item->GetAbilityCooldownTimeRemaining();
+		float AbilityCooldownDuration = Item->GetAbilityCooldownDuration();
+
+		if (AbilityCooldownRemaining > 0.f)
+		{
+			StartCooldown(AbilityCooldownDuration, AbilityCooldownRemaining);
+		}
+
+		float AbilityManaCost = Item->GetAbilityManaCost();
+		Text_ManaCost->SetVisibility(AbilityManaCost > 0.f ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+		Text_ManaCost->SetText(FText::AsNumber(AbilityManaCost));
+
+		Text_CooldownDuration->SetVisibility(AbilityCooldownDuration > 0.f ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+		Text_CooldownDuration->SetText(FText::AsNumber(AbilityCooldownDuration));
+		BindCanCastDelegate();
+	}
+	else
+	{
+		Text_ManaCost->SetVisibility(ESlateVisibility::Hidden);
+		Text_CooldownDuration->SetVisibility(ESlateVisibility::Hidden);
+		Text_CooldownCount->SetVisibility(ESlateVisibility::Hidden);
+		UpdateCanCastDisplay(true);
+	}
 }
 
 bool UBagItemWidget::IsEmpty() const
@@ -50,8 +81,10 @@ bool UBagItemWidget::IsEmpty() const
 
 void UBagItemWidget::EmptySlot()
 {
+	ClearCooldown();
+	UnBindCanCastDelegate();
 	Item = nullptr;
-
+	
 	SetItemIcon(EmptyTexture);
 	SetToolTip(nullptr);
 
@@ -93,6 +126,7 @@ void UBagItemWidget::StartCooldown(float CooldownDuration, float TimeRemaining)
 {
 	CooldownTimeRemaining = TimeRemaining;
 	CooldownTimeDuration = CooldownDuration;
+
 	GetWorld()->GetTimerManager().SetTimer(CooldownDurationTimerHandle, this, &UBagItemWidget::CooldownFinished, CooldownTimeRemaining);
 	GetWorld()->GetTimerManager().SetTimer(CooldownUpdateTimerHandle, this, &ThisClass::UpdateCooldown, CooldownUpdateInterval, true);
 
@@ -108,6 +142,17 @@ void UBagItemWidget::SetItemIcon(UTexture2D* NewTexture)
 	}
 
 	Super::SetItemIcon(NewTexture);
+}
+
+void UBagItemWidget::OnAbilityCommited(UGameplayAbility* Ability)
+{
+	//说明Commite的Ability就是当前Item的GrantedAbility
+	if (!Item || !Item->IsValid()) return;
+
+	if (Ability->GetClass() == Item->GetShopItem()->GetGrantedAbility())
+	{
+		StartCooldown(Item->GetAbilityCooldownDuration(), Item->GetAbilityCooldownTimeRemaining());
+	}
 }
 
 void UBagItemWidget::CooldownFinished()
@@ -139,6 +184,27 @@ void UBagItemWidget::UpdateCooldown()
 void UBagItemWidget::ClearCooldown()
 {
 	CooldownFinished();
+}
+
+void UBagItemWidget::UpdateCanCastDisplay(bool bCanCast)
+{
+	GetItemIcon()->GetDynamicMaterial()->SetScalarParameterValue(CanCastParamName, bCanCast ? 1.f : 0.f);
+}
+
+void UBagItemWidget::BindCanCastDelegate()
+{
+	if (Item)
+	{
+		const_cast<UInventoryItem*>(Item.Get())->OnAbilityCanCastUpdate.AddUObject(this, &ThisClass::UpdateCanCastDisplay);
+	}
+}
+
+void UBagItemWidget::UnBindCanCastDelegate()
+{
+	if (Item)
+	{
+		const_cast<UInventoryItem*>(Item.Get())->OnAbilityCanCastUpdate.RemoveAll(this);
+	}
 }
 
 void UBagItemWidget::OnLeftMouseButtonClicked()

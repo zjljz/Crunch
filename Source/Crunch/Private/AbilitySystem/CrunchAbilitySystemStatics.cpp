@@ -33,11 +33,11 @@ float UCrunchAbilitySystemStatics::GetCostForAbility(const UGameplayAbility* Abi
 	return FMath::Abs(Cost);
 }
 
-bool UCrunchAbilitySystemStatics::IsHero(const AActor* ActorToCheck)
+bool UCrunchAbilitySystemStatics::IsActorHaveTag(const AActor* ActorToCheck, const FGameplayTag& Tag)
 {
 	if (UAbilitySystemComponent* ActorASC = ActorToCheck->GetComponentByClass<UAbilitySystemComponent>())
 	{
-		return ActorASC->HasMatchingGameplayTag(CrunchGameplayTags::Role_Hero);
+		return ActorASC->HasMatchingGameplayTag(Tag);
 	}
 
 	return false;
@@ -54,6 +54,16 @@ bool UCrunchAbilitySystemStatics::CheckAbilityCost(const FGameplayAbilitySpec& A
 	if (const UGameplayAbility* AbilityCDO = AbilitySpec.Ability)
 	{
 		return AbilityCDO->CheckCost(AbilitySpec.Handle, ASC.AbilityActorInfo.Get());
+	}
+
+	return false;
+}
+
+bool UCrunchAbilitySystemStatics::CheckAbilityCostStatic(const UGameplayAbility* Ability, const UAbilitySystemComponent& ASC)
+{
+	if (Ability)
+	{
+		return Ability->CheckCost(FGameplayAbilitySpecHandle(), ASC.AbilityActorInfo.Get());
 	}
 
 	return false;

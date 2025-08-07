@@ -3,6 +3,7 @@
 
 #include "Widgets/InventoryWidget.h"
 
+#include "AbilitySystemComponent.h"
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Button.h"
@@ -29,7 +30,7 @@ void UInventoryWidget::NativeConstruct()
 			ItemList->ClearChildren();
 
 			CreateContextMenuWidget();
-			
+
 			for (int i = 0; i < Capacity; ++i)
 			{
 				if (UBagItemWidget* NewEmptyWidget = CreateWidget<UBagItemWidget>(GetOwningPlayer(), ItemWidgetClass))
@@ -43,6 +44,9 @@ void UInventoryWidget::NativeConstruct()
 					NewEmptyWidget->OnBagItemDropped.AddUObject(this, &ThisClass::HandleItemDragDrop);
 					NewEmptyWidget->OnLeftButtonClicked.AddUObject(InventoryComp, &UInventoryComponent::TryActivateItem);
 					NewEmptyWidget->OnRightButtonClicked.AddUObject(this, &ThisClass::ToggleContextMenu);
+
+					//@todo: 这里获取ASC 需要修改.
+					OwnerPawn->GetComponentByClass<UAbilitySystemComponent>()->AbilityCommittedCallbacks.AddUObject(NewEmptyWidget, &UBagItemWidget::OnAbilityCommited);
 				}
 			}
 		}
@@ -119,7 +123,7 @@ void UInventoryWidget::HandleItemDragDrop(UBagItemWidget* DestinationWidget, UBa
 	{
 		PopulatedItemEntryWidget[DestinationItem->GetHandle()] = SourceWidget;
 	}
-	
+
 	if (InventoryComp)
 	{
 		InventoryComp->OnInventorySlotChanged(SourceWidget->GetItemHandle(), SourceWidget->GetSlotIndex());
@@ -188,7 +192,7 @@ void UInventoryWidget::ToggleContextMenu(const FInventoryItemHandle& Handle)
 	if (!ItemWidget) return;
 
 	SetContextMenuWidgetVisible(true);
-	FVector2D WidgetAbsPos = ItemWidget->GetCachedGeometry().GetAbsolutePositionAtCoordinates(FVector2D{1.f,0.5f});
+	FVector2D WidgetAbsPos = ItemWidget->GetCachedGeometry().GetAbsolutePositionAtCoordinates(FVector2D{1.f, 0.5f});
 
 	FVector2D ItemWidgetPixelPos, ItemWidgetViewportPos;
 	USlateBlueprintLibrary::AbsoluteToViewport(this, WidgetAbsPos, ItemWidgetPixelPos, ItemWidgetViewportPos);

@@ -31,6 +31,8 @@ public:
 
 	FORCEINLINE int GetCapacity() const { return Capacity; }
 
+	FORCEINLINE UAbilitySystemComponent* GetOwnerASC() const { return OwnerASC; }
+
 	//购买某个物品.
 	void TryBuySth(const UShopItemAsset* ItemToBuy);
 
@@ -61,6 +63,9 @@ public:
 	                            const TArray<const UShopItemAsset*>& IngredientToIgnore = TArray<const UShopItemAsset*>{});
 
 	UInventoryItem* TryGetItemByShopItemAsset(const UShopItemAsset* ItemAsset) const;
+
+
+	void TryActivateItemInSlot(int SlotIndex);
 
 public:
 	FOnItemAddDelegate OnItemAdd;
@@ -111,7 +116,7 @@ private:
 	/*************************************************/
 
 	UFUNCTION(Client, Reliable)
-	void Client_ItemAdded(FInventoryItemHandle AssignedHandle, const UShopItemAsset* NewItem);
+	void Client_ItemAdded(FInventoryItemHandle AssignedHandle, const UShopItemAsset* NewItem, FGameplayAbilitySpecHandle SpecHandle);
 
 	UFUNCTION(Client, Reliable)
 	void Client_ItemRemoved(FInventoryItemHandle RemoveItemHandle);

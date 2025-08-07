@@ -30,6 +30,8 @@ public:
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
+	
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "View")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -55,6 +57,9 @@ private:
 	TObjectPtr<UInputAction> IA_UpgradeAbility;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_UseInventoryItem;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TMap<ECrunchAbilityInputID, TObjectPtr<UInputAction>> GAToIAMap;
 
 	bool bIsUpgradeAbilityKeyDown = false;
@@ -71,6 +76,8 @@ private:
 
 	void HandleAbilityInput(const FInputActionValue& InputActionValue, ECrunchAbilityInputID AbilityInputID);
 
+	void HandleUseInventoryItem(const FInputActionValue& InputActionValue);
+	
 	/*******************End InputSystem *******************/
 
 

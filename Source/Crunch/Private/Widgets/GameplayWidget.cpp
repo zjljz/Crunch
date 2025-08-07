@@ -26,7 +26,7 @@ void UGameplayWidget::NativeConstruct()
 	}
 }
 
-void UGameplayWidget::ConfigureAbilities(const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& Abilities)
+void UGameplayWidget::ConfigureAbilities(const TMap<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& Abilities) const
 {
 	AbilityListView->ConfigureAbilities(Abilities);
 }

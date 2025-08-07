@@ -23,11 +23,15 @@ public:
 	static float GetCooldownDurationForAbility(const UGameplayAbility* Ability);
 
 	static float GetCostForAbility(const UGameplayAbility* Ability);
-
-	static bool IsHero(const AActor* ActorToCheck);
-	static bool IsAbilityAtMaxLevel(const FGameplayAbilitySpec& Spec);
 	
+	static bool IsActorHaveTag(const AActor* ActorToCheck, const FGameplayTag& Tag);
+	
+	static bool IsAbilityAtMaxLevel(const FGameplayAbilitySpec& Spec);
+
+	//这俩个检测Cost的区别是 下面一个默认AbilityLevel为1, 而上面的可以有自己的Level.
 	static bool CheckAbilityCost(const FGameplayAbilitySpec& AbilitySpec, const UAbilitySystemComponent& ASC);
+	static bool CheckAbilityCostStatic(const UGameplayAbility* Ability, const UAbilitySystemComponent& ASC);
+	
 	static float GetManaCostForAbility(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& ASC, int AbilityLevel);
 	static float GetCooldownDurationForAbility(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& ASC, int AbilityLevel);
 	static float GetCooldownRemainingForAbility(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& ASC);
