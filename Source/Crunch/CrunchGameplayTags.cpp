@@ -40,14 +40,16 @@ namespace CrunchGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_UpperCut_Cooldown, "Ability.UpperCut.Cooldown",
 	                               "Tag for UpperCut ability cooldown. This tag is used to manage the cooldown state of the UpperCut ability.");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_GroundBlast_Cooldown, "Ability.GroundBlast.Cooldown",
+							   "Tag for GroundBlast ability cooldown. This tag is used to manage the cooldown state of the GroundBlast ability.");
+	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Shoot, "Ability.Shoot", "The Ability which Shoot Projectile");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Shoot_LeftHand, "Ability.Shoot.LeftHand", "Shoot With Left Hand");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Shoot_RightHand, "Ability.Shoot.RightHand", "Shoot With Right Hand");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Target_Updated, "Target.Updated", "代表目标已经更新的Tag,用于本地更新准星")
 
-
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_GroundBlast_Cooldown, "Ability.GroundBlast.Cooldown",
-	                               "Tag for GroundBlast ability cooldown. This tag is used to manage the cooldown state of the GroundBlast ability.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Lazer_Shoot, "Ability.Lazer.Shoot", "Phase人物的激光射击能力的Tag.")
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Lazer_Cooldown, "Ability.Lazer.Cooldown", "Phase人物的激光射击能力Cooldown的Tag.")
 
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_CameraShake, "GameplayCue.CameraShake", "屏幕震动的GameplayCue")

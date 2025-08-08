@@ -15,7 +15,7 @@ public class Crunch : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "UMG", "Slate", "SlateCore", "AIModule"
+			"EnhancedInput", "GameplayAbilities", "GameplayTags", "GameplayTasks", "UMG", "Slate", "SlateCore", "AIModule", "Niagara"
 		});
 
 		PublicIncludePathModuleNames.AddRange(new string[] { "Crunch" });
