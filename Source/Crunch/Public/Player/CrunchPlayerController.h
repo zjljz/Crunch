@@ -28,6 +28,11 @@ public:
 	//在Client/Listen Server上调用
 	virtual void AcknowledgePossession(APawn* P) override;
 
+	void MatchFinished(AActor* ViewTarget, int WinTeamId);
+
+	UFUNCTION(Client, Reliable)
+	void Client_MatchFinished(AActor* ViewTarget, int WinTeamId);
+	
 protected:
 	virtual void SetupInputComponent() override;
 
@@ -42,7 +47,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UGameplayWidget> GameplayWidget;
-
+	
+	UPROPERTY(EditDefaultsOnly, Category = "View")
+	float MatchFinishBlendTime = 2.f;
 
 	/******************* Input *******************/
 
@@ -51,12 +58,20 @@ private:
 	UFUNCTION()
 	void ToggleShop();
 
+	UFUNCTION()
+	void ToggleGameplayMenu();
+
+	void ShowWinLoseState();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC_UI;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_ToggleShop;
-
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_ToggleGameplayMenu;
+	
 	/****************End Input *******************/
 public:
 	/***************************************************

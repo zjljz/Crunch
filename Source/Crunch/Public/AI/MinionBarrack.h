@@ -37,7 +37,7 @@ public:
 
 	//Spawn minions amount in group.
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn")
-	int32 MinionPerGroup = 3;
+	int32 MinionPerGroup = 5;
 	
 	//Time in seconds between spawn.
 	UPROPERTY(EditDefaultsOnly, Category = "Spawn")

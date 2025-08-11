@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "GameplayWidget.generated.h"
 
+class UWidgetSwitcher;
+class UGameplayMenuWidget;
+class UMatchStatWidget;
 class UCrosshairWidget;
 class UCanvasPanel;
 class USkeletalMeshRenderWidget;
@@ -32,6 +35,13 @@ public:
 
 	void ToggleShopVisible();
 
+	UFUNCTION()
+	void ToggleGameplayMenu();
+
+	void ShowGameplayMenu();
+
+	void SetGameplayMenuTitle(const FString& NewTitle) const;
+	
 private:
 	void PlayShopPopAnimation(bool bPlayForward = true);
 
@@ -44,6 +54,15 @@ private:
 	void SetInputModeGameOnly();
 
 private:
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWidgetSwitcher> MainSwitcher;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> GameplayWidgetRootPanel;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UCanvasPanel> GameplayMenuRootPanel;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UValueGauge> HealthGauge;
 
@@ -82,6 +101,12 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCrosshairWidget> CrosshairWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UMatchStatWidget> MatchStatWidget;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UGameplayMenuWidget> GameplayMenuWidget;
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> OwnerASC;

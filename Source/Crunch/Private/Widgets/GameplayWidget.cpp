@@ -4,8 +4,11 @@
 #include "Widgets/GameplayWidget.h"
 
 #include "AbilitySystemGlobals.h"
+#include "Components/CanvasPanel.h"
+#include "Components/WidgetSwitcher.h"
 #include "Crunch/Public/AbilitySystem/CrunchAbilitySystemComponent.h"
 #include "Widgets/AbilityListView.h"
+#include "Widgets/GameplayMenuWidget.h"
 #include "Widgets/InventoryShopWidget.h"
 #include "Widgets/ValueGauge.h"
 
@@ -23,6 +26,13 @@ void UGameplayWidget::NativeConstruct()
 	if (UCrunchAbilitySystemComponent* CrunchASC = Cast<UCrunchAbilitySystemComponent>(OwnerASC))
 	{
 		ConfigureAbilities(CrunchASC->GetAbilities());
+	}
+
+	SetShowMouseCursor(false);
+	SetInputModeGameOnly();
+	if (GameplayMenuWidget)
+	{
+		GameplayMenuWidget->GetResumeButtonClickEvent().AddDynamic(this, &ThisClass::ToggleGameplayMenu);
 	}
 }
 
@@ -50,6 +60,34 @@ void UGameplayWidget::ToggleShopVisible()
 		SetShowMouseCursor(false);
 		SetInputModeGameOnly();
 	}
+}
+
+void UGameplayWidget::ToggleGameplayMenu()
+{
+	if (MainSwitcher->GetActiveWidget() == GameplayMenuRootPanel)
+	{
+		MainSwitcher->SetActiveWidget(GameplayWidgetRootPanel);
+		SetOwningPawnInputEnabled(true);
+		SetShowMouseCursor(false);
+		SetInputModeGameOnly();
+	}
+	else
+	{
+		ShowGameplayMenu();
+	}
+}
+
+void UGameplayWidget::ShowGameplayMenu()
+{
+	MainSwitcher->SetActiveWidget(GameplayMenuRootPanel);
+	SetOwningPawnInputEnabled(false);
+	SetShowMouseCursor(true);
+	SetInputModeGameAndUI();
+}
+
+void UGameplayWidget::SetGameplayMenuTitle(const FString& NewTitle) const
+{
+	GameplayMenuWidget->SetMenuTitleString(NewTitle);
 }
 
 void UGameplayWidget::PlayShopPopAnimation(bool bPlayForward)

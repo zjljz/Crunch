@@ -29,6 +29,8 @@ public:
 
 	AActor* GetAimTarget(float AimDistance, ETeamAttitude::Type TeamAttitude) const;
 
+	FORCEINLINE bool ShouldDrawDebug() const { return bShouldDrawDebug; }
+
 	//给自己一个推力.
 	void PushSelf(const FVector& PushVel) const;
 

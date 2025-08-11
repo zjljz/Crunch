@@ -44,6 +44,29 @@ void ACrunchPlayerController::AcknowledgePossession(APawn* P)
 	}
 }
 
+void ACrunchPlayerController::MatchFinished(AActor* ViewTarget, int WinTeamId)
+{
+	if (!HasAuthority()) return;
+	
+	OwnedCharacter->DisableInput(this);
+
+	Client_MatchFinished(ViewTarget, WinTeamId);
+}
+
+void ACrunchPlayerController::Client_MatchFinished_Implementation(AActor* ViewTarget, int WinTeamId)
+{
+	SetViewTargetWithBlend(ViewTarget, MatchFinishBlendTime);
+	
+	FString WinLoseMsg = "You Win ! ! !";
+	if (GetGenericTeamId().GetId() != WinTeamId)
+	{
+		WinLoseMsg = "You Lose...";
+	}
+	GameplayWidget->SetGameplayMenuTitle(WinLoseMsg);
+	FTimerHandle ShowWinLoseStateHandle;
+	GetWorldTimerManager().SetTimer(ShowWinLoseStateHandle, this, &ThisClass::ShowWinLoseState, MatchFinishBlendTime);
+}
+
 void ACrunchPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -53,10 +76,11 @@ void ACrunchPlayerController::SetupInputComponent()
 		EnhancedInputSubsystem->RemoveMappingContext(IMC_UI);
 		EnhancedInputSubsystem->AddMappingContext(IMC_UI, 1);
 	}
-	
+
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
 	{
 		EnhancedInput->BindAction(IA_ToggleShop, ETriggerEvent::Triggered, this, &ThisClass::ToggleShop);
+		EnhancedInput->BindAction(IA_ToggleGameplayMenu, ETriggerEvent::Triggered, this, &ThisClass::ToggleGameplayMenu);
 	}
 }
 
@@ -77,5 +101,21 @@ void ACrunchPlayerController::ToggleShop()
 	if (GameplayWidget)
 	{
 		GameplayWidget->ToggleShopVisible();
+	}
+}
+
+void ACrunchPlayerController::ToggleGameplayMenu()
+{
+	if (GameplayWidget)
+	{
+		GameplayWidget->ToggleGameplayMenu();
+	}
+}
+
+void ACrunchPlayerController::ShowWinLoseState()
+{
+	if (GameplayWidget)
+	{
+		GameplayWidget->ShowGameplayMenu();
 	}
 }

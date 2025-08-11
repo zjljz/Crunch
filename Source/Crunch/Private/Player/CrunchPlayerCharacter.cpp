@@ -74,8 +74,7 @@ void ACrunchPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 void ACrunchPlayerCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
 {
 	OutLocation = ViewCamera->GetComponentLocation();
-	OutRotation = ViewCamera->GetComponentRotation();
-	
+	OutRotation = GetBaseAimRotation();
 }
 
 void ACrunchPlayerCharacter::SetInputEnabled(bool bEnabled)

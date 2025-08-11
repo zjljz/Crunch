@@ -4,7 +4,9 @@
 #include "Framework/CrunchGameMode.h"
 
 #include "EngineUtils.h"
+#include "Framework/StormCore.h"
 #include "GameFramework/PlayerStart.h"
+#include "Player/CrunchPlayerController.h"
 
 APlayerController* ACrunchGameMode::SpawnPlayerController(ENetRole InRemoteRole, const FString& Options)
 {
@@ -20,6 +22,16 @@ APlayerController* ACrunchGameMode::SpawnPlayerController(ENetRole InRemoteRole,
 	PC->StartSpot = FindNextStartSpotForTeam(TeamId);
 
 	return PC;
+}
+
+void ACrunchGameMode::StartPlay()
+{
+	Super::StartPlay();
+
+	if (AStormCore* StormCore = GetStormCore())
+	{
+		StormCore->OnGoalReachedDelegate.AddUObject(this, &ThisClass::MatchFinished);
+	}
 }
 
 FGenericTeamId ACrunchGameMode::GetDefaultTeamIdForPlayerController()
@@ -48,4 +60,28 @@ AActor* ACrunchGameMode::FindNextStartSpotForTeam(const FGenericTeamId& TeamId) 
 	}
 
 	return nullptr;
+}
+
+AStormCore* ACrunchGameMode::GetStormCore() const
+{
+	if (UWorld* World = GetWorld())
+	{
+		for (TActorIterator<AStormCore> It(World); It; ++It)
+		{
+			return *It;
+		}
+	}
+
+	return nullptr;
+}
+
+void ACrunchGameMode::MatchFinished(AActor* ViewTarget, int WinTeamId) const
+{
+	if (UWorld* World = GetWorld())
+	{
+		for (TActorIterator<ACrunchPlayerController> It(World); It; ++It)
+		{
+			It->MatchFinished(ViewTarget, WinTeamId);
+		}
+	}
 }

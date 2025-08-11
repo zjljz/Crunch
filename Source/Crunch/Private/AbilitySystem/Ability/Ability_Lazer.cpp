@@ -71,11 +71,16 @@ void UAbility_Lazer::ShootLazer(FGameplayEventData Payload)
 
 	AGameplayAbilityTargetActor* TargetActor;
 	WaitTargetData->BeginSpawningActor(this, TargetActorClass, TargetActor);
-	WaitTargetData->FinishSpawningActor(this, TargetActor);
-		
 	if (ATargetActor_Line* TA_Line = Cast<ATargetActor_Line>(TargetActor))
 	{
-		TA_Line->AttachToComponent(GetOwningComponentFromActorInfo(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, VFXAttackSocketName);
+		TA_Line->ConfigureTargetSetting(TargetRange, DetectionCylinderRadius, TargetingInterval, GetOwnerTeamId(), ShouldDrawDebug());
+	}
+
+	WaitTargetData->FinishSpawningActor(this, TargetActor);
+
+	if (TargetActor)
+	{
+		TargetActor->AttachToComponent(GetOwningComponentFromActorInfo(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, VFXAttackSocketName);
 	}
 }
 
@@ -92,4 +97,9 @@ void UAbility_Lazer::OnAttributeManaUpdate(const FOnAttributeChangeData& NewData
 
 void UAbility_Lazer::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle& Data)
 {
+	if (K2_HasAuthority())
+	{
+		BP_ApplyGameplayEffectToTarget(Data, HitDamageEffectClass, GetAbilityLevel());
+		PushTargets(Data, GetAvatarActorFromActorInfo()->GetActorForwardVector() * HitPushSpeed);
+	}
 }
