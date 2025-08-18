@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "Blueprint/IUserObjectListEntry.h"
 #include "Blueprint/UserWidget.h"
 #include "AbilityGauge.generated.h"
 
+class UAbilityToolTip;
 struct FOnAttributeChangeData;
 struct FGameplayAbilitySpec;
 class UAbilitySystemComponent;
@@ -69,6 +71,8 @@ public:
 	void UpdateCanCast();
 	void OnUpgradePointUpdate(const FOnAttributeChangeData& Data);
 	void OnManaUpdate(const FOnAttributeChangeData& Data);
+
+	void CreateAbilityToolTip(const FAbilityWidgetDataRow* AbilityWidgetData);
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Data")
@@ -104,6 +108,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> CostText;
 
+	UPROPERTY(EditDefaultsOnly, Category = "ToolTip")
+	TSubclassOf<UAbilityToolTip> AbilityToolTipClass;
+	
 	UPROPERTY()
 	TWeakObjectPtr<UGameplayAbility> AbilityCDO; // The ability this gauge represents
 
@@ -126,7 +133,7 @@ private:
 	UPROPERTY()
 	UAbilitySystemComponent* OwnerASC;
 
-	const FGameplayAbilitySpec* CachedAbilitySpec;
+	FGameplayAbilitySpecHandle CachedAbilitySpecHandle;
 
 	bool bIsAbilityLearned = false;
 };

@@ -20,9 +20,13 @@ public:
 	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, const FString& Options) override;
 
 	virtual void StartPlay() override;
-	
+
+	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+
+	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
+
 private:
-	FGenericTeamId GetDefaultTeamIdForPlayerController();
+	FGenericTeamId GetTeamIdForController(const AController* InController);
 
 	AActor* FindNextStartSpotForTeam(const FGenericTeamId& TeamId) const;
 

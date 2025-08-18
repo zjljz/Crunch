@@ -47,7 +47,7 @@ void UAbility_GroundBlast::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	if (ATargetActor_GroundPick* GroundPickActor = Cast<ATargetActor_GroundPick>(TargetActor))
 	{
 		GroundPickActor->SetTargetAreaRadius(TargetAreaRadius);
-		GroundPickActor->SetDrawDebug(bDrawDebug);
+		GroundPickActor->SetDrawDebug(ShouldDrawDebug());
 		GroundPickActor->SetTraceLineLength(TraceLineLength);
 	}
 

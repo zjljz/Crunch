@@ -95,6 +95,7 @@ void ACrunchCharacter::BindAbilitySystemTagChangeDelegate()
 		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Dead).AddUObject(this, &ThisClass::OnDeadTagUpDate);
 		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Stun).AddUObject(this, &ThisClass::OnStunTagUpdate);
 		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Aim).AddUObject(this, &ThisClass::OnAimTagUpdate);
+		CrunchASC->RegisterGameplayTagEvent(CrunchGameplayTags::Stats_Focus).AddUObject(this, &ThisClass::OnFocusTagUpdate);
 
 		CrunchASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ThisClass::OnAttributeMoveSpeedUpdate);
 		CrunchASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetMaxHealthAttribute()).AddUObject(this, &ThisClass::OnAttributeMaxHealthUpdate);
@@ -154,6 +155,11 @@ void ACrunchCharacter::OnStunTagUpdate(const FGameplayTag Tag, int32 NewCount)
 		StopAnimMontage(StunMontage);
 		OnEndStun();
 	}
+}
+
+void ACrunchCharacter::OnFocusTagUpdate(const FGameplayTag Tag, int32 NewCount)
+{
+	bIsFocusMode = NewCount > 0;
 }
 
 bool ACrunchCharacter::IsDead() const

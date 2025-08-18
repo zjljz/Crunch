@@ -7,6 +7,7 @@
 #include "ShopItemAsset.h"
 #include "CrunchAssetManager.generated.h"
 
+class UPawnData;
 /**
  * 
  */
@@ -18,6 +19,9 @@ class CRUNCH_API UCrunchAssetManager : public UAssetManager
 public:
 	static UCrunchAssetManager& Get();
 
+	void LoadPawnData(const FStreamableDelegate& LoadPawnDataCallback);
+	bool GetLoadedPawnData(TArray<UPawnData*>& LoadedPawnData);
+	
 	//当调用这个函数时,会根据UShopItemAsset的AssetType来加载对应的所有PrimaryAsset,从而填补对应的Map.
 	void LoadShopItems(const FStreamableDelegate& LoadFinishedCallback);
 
@@ -29,7 +33,7 @@ public:
 
 	//获取合成特定Item的子Item.
 	const FItemCollection* GetIngredientForItem(const UShopItemAsset* Item);
-	
+
 private:
 	void OnShopItemLoadFinished(FStreamableDelegate Callback);
 

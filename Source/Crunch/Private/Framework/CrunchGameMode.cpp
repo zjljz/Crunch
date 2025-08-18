@@ -7,12 +7,13 @@
 #include "Framework/StormCore.h"
 #include "GameFramework/PlayerStart.h"
 #include "Player/CrunchPlayerController.h"
+#include "Player/CrunchPlayerState.h"
 
 APlayerController* ACrunchGameMode::SpawnPlayerController(ENetRole InRemoteRole, const FString& Options)
 {
 	APlayerController* PC = Super::SpawnPlayerController(InRemoteRole, Options);
 
-	FGenericTeamId TeamId = GetDefaultTeamIdForPlayerController();
+	FGenericTeamId TeamId = GetTeamIdForController(PC);
 
 	if (IGenericTeamAgentInterface* Interface = Cast<IGenericTeamAgentInterface>(PC))
 	{
@@ -34,11 +35,50 @@ void ACrunchGameMode::StartPlay()
 	}
 }
 
-FGenericTeamId ACrunchGameMode::GetDefaultTeamIdForPlayerController()
+UClass* ACrunchGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
+	if (ACrunchPlayerState* PS = InController->GetPlayerState<ACrunchPlayerState>())
+	{
+		if (PS->GetSelectedCharacterClass())
+		{
+			return PS->GetSelectedCharacterClass();
+		}
+	}
+
+	return Super::GetDefaultPawnClassForController_Implementation(InController);
+}
+
+APawn* ACrunchGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)
+{
+	IGenericTeamAgentInterface* TeamAgentInterface = Cast<IGenericTeamAgentInterface>(NewPlayer);
+	FGenericTeamId TeamId = GetTeamIdForController(NewPlayer);
+	if (TeamAgentInterface)
+	{
+		TeamAgentInterface->SetGenericTeamId(TeamId);
+	}
+	
+	if (FindNextStartSpotForTeam(TeamId))
+	{
+		StartSpot = FindNextStartSpotForTeam(TeamId);
+		NewPlayer->StartSpot = StartSpot;
+	}
+	
+	return Super::SpawnDefaultPawnFor_Implementation(NewPlayer, StartSpot);
+}
+
+FGenericTeamId ACrunchGameMode::GetTeamIdForController(const AController* InController)
+{
+	if (ACrunchPlayerState* PS = InController->GetPlayerState<ACrunchPlayerState>())
+	{
+		if (PS->GetSelectedCharacterClass())
+		{
+			return PS->GetTeamIdBasedOnSlot();
+		}
+	}
+
 	static int PlayerCount = 0;
 	++PlayerCount;
-	return FGenericTeamId(PlayerCount % 2); // Alternates between team 0 and team 1
+	return FGenericTeamId(PlayerCount % 2);
 }
 
 AActor* ACrunchGameMode::FindNextStartSpotForTeam(const FGenericTeamId& TeamId) const

@@ -178,6 +178,23 @@ void UCrunchGameplayAbility::PushTargets(const FGameplayAbilityTargetDataHandle&
 	PushTargets(TargetActors, PushVel);
 }
 
+void UCrunchGameplayAbility::PushTargetsFromLocation(const TArray<AActor*>& Targets, const FVector& FromLocation, float PushSpeed) const
+{
+	for (AActor* Target : Targets)
+	{
+		FVector PushDir = Target->GetActorLocation() - FromLocation;
+		PushDir.Z = 0.f;
+		PushDir.Normalize();
+		PushTarget(Target, PushDir * PushSpeed);
+	}
+}
+
+void UCrunchGameplayAbility::PushTargetsFromLocation(const FGameplayAbilityTargetDataHandle& TargetData, const FVector& FromLocation, float PushSpeed) const
+{
+	TArray<AActor*> Targets = UAbilitySystemBlueprintLibrary::GetAllActorsFromTargetData(TargetData);
+	PushTargetsFromLocation(Targets, FromLocation, PushSpeed);
+}
+
 void UCrunchGameplayAbility::PlayMontageLocally(UAnimMontage* Montage) const
 {
 	UAnimInstance* OwnerAnimInst = CurrentActorInfo->GetAnimInstance();

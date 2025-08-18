@@ -39,6 +39,10 @@ public:
 	void PushTargets(const TArray<AActor*>& Targets, const FVector& PushVel) const;
 	void PushTargets(const FGameplayAbilityTargetDataHandle& TargetData, const FVector& PushVel) const;
 
+	void PushTargetsFromLocation(const TArray<AActor*>& Targets, const FVector& FromLocation, float PushSpeed) const;
+	void PushTargetsFromLocation(const FGameplayAbilityTargetDataHandle& TargetData, const FVector& FromLocation, float PushSpeed) const;
+
+	
 	//当我们不在ActivateAbility内部调用PlayMontageTask时 会出现这种情况: Ability所属的Client 无法播放Montage, 所以需要这个函数.
 	void PlayMontageLocally(UAnimMontage* Montage) const;
 	void StopMontageAfterCurrentSection(UAnimMontage* Montage) const;

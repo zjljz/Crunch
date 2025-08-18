@@ -10,6 +10,7 @@ namespace CrunchGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Dead, "Stats.Dead", "死亡的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Stun, "Stats.Stun", "眩晕的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Aim, "Stats.Aim", "瞄准的状态")
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Focus, "Stats.Focus", "专注的状态 此时不能移动")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Crosshair, "Stats.Crosshair", "瞄准有准星的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Health_Full, "Stats.Health.Full", "生命为满的状态")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stats_Health_Empty, "Stats.Health.Empty", "生命为空的状态")
@@ -51,6 +52,7 @@ namespace CrunchGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Lazer_Shoot, "Ability.Lazer.Shoot", "Phase人物的激光射击能力的Tag.")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Lazer_Cooldown, "Ability.Lazer.Cooldown", "Phase人物的激光射击能力Cooldown的Tag.")
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_BlackHole_Cooldown, "Ability.BlackHole.Cooldown", "Phase人物的黑洞能力Cooldown的Tag.")
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_CameraShake, "GameplayCue.CameraShake", "屏幕震动的GameplayCue")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_GroundBlast, "GameplayCue.GroundBlast", "地面爆炸的GameplayCue");

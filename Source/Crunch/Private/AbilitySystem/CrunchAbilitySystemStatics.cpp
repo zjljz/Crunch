@@ -1,14 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Crunch/Public/AbilitySystem/CrunchAbilitySystemStatics.h"
+#include "AbilitySystem/CrunchAbilitySystemStatics.h"
 
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
 #include "GameplayEffect.h"
 #include "Abilities/GameplayAbility.h"
-#include "AbilitySystem/CrunchAttributeSet.h"
-#include "Crunch/CrunchGameplayTags.h"
 
 
 float UCrunchAbilitySystemStatics::GetCooldownDurationForAbility(const UGameplayAbility* Ability)

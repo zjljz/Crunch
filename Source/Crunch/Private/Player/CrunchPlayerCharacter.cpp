@@ -102,6 +102,8 @@ void ACrunchPlayerCharacter::HandleLook(const FInputActionValue& InputActionValu
 
 void ACrunchPlayerCharacter::HandleMove(const FInputActionValue& InputActionValue)
 {
+	if (IsFocusMode()) return;
+	
 	FVector2D InputVal = InputActionValue.Get<FVector2D>();
 	InputVal.Normalize();
 

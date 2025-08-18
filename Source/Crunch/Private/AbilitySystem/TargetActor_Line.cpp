@@ -45,6 +45,16 @@ void ATargetActor_Line::Tick(float DeltaSeconds)
 	UpdateTargetTrack();
 }
 
+void ATargetActor_Line::BeginDestroy()
+{
+	if (GetWorld() && PeriodicalTargetingTimerHandle.IsValid())
+	{
+		GetWorldTimerManager().ClearTimer(PeriodicalTargetingTimerHandle);
+	}
+	
+	Super::BeginDestroy();
+}
+
 void ATargetActor_Line::StartTargeting(UGameplayAbility* Ability)
 {
 	Super::StartTargeting(Ability);
@@ -75,7 +85,7 @@ void ATargetActor_Line::DoTargetCheckAndReport()
 	TargetEndDetectionSphere->GetOverlappingActors(OverlappedActorSet);
 
 	TArray<TWeakObjectPtr<AActor>> OverlappedActorArr;
-	
+
 	for (AActor* Actor : OverlappedActorSet)
 	{
 		if (ShouldReportActorAsTarget(Actor))

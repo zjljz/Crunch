@@ -23,6 +23,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void Tick(float DeltaSeconds) override;
+
+	virtual void BeginDestroy() override;
 	
 	virtual void StartTargeting(UGameplayAbility* Ability) override;
 	

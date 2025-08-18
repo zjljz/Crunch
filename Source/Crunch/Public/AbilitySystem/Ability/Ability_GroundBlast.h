@@ -52,7 +52,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	float TraceLineLength = 2000.f;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
-	bool bDrawDebug = false;
 };

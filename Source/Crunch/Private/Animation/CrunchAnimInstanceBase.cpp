@@ -44,7 +44,12 @@ void UCrunchAnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 		BodyLastRot = BodyRot;
 
 		YawSpeed = DeltaRot.Yaw / DeltaSeconds;
-		SmoothedYawSpeed = UKismetMathLibrary::FInterpTo(SmoothedYawSpeed, YawSpeed, DeltaSeconds, SmoothLerpSpeedForYawSpeed);
+		float YawLerpSpeed = SmoothLerpSpeedForYawSpeed;
+		if (YawSpeed == 0)
+		{
+			YawLerpSpeed = YawSpeedLerpToZeroSpeed;
+		}
+		SmoothedYawSpeed = UKismetMathLibrary::FInterpTo(SmoothedYawSpeed, YawSpeed, DeltaSeconds, YawLerpSpeed);
 
 		FRotator ControlRot = OwnerCharacter->GetBaseAimRotation();
 		LookRotOffset = UKismetMathLibrary::NormalizedDeltaRotator(ControlRot, BodyRot);

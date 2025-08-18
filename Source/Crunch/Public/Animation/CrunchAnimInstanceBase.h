@@ -93,8 +93,12 @@ private:
 	
 	// 平滑插值速度 用于平滑YawSpeed
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
-	float SmoothLerpSpeedForYawSpeed = 2.0f;
+	float SmoothLerpSpeedForYawSpeed = 1.0f;
 
+	// 平滑插值速度 用于平滑YawSpeed
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	float YawSpeedLerpToZeroSpeed = 30.0f;
+	
 	// 角色的视角偏移 用来混合AimOffset动画 控制人物头的转向
 	FRotator LookRotOffset;
 };

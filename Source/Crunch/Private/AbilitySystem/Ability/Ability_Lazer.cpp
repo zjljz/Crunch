@@ -100,6 +100,6 @@ void UAbility_Lazer::OnTargetDataReceived(const FGameplayAbilityTargetDataHandle
 	if (K2_HasAuthority())
 	{
 		BP_ApplyGameplayEffectToTarget(Data, HitDamageEffectClass, GetAbilityLevel());
-		PushTargets(Data, GetAvatarActorFromActorInfo()->GetActorForwardVector() * HitPushSpeed);
 	}
+	PushTargets(Data, GetAvatarActorFromActorInfo()->GetActorForwardVector() * HitPushSpeed);
 }

@@ -72,6 +72,12 @@ public:
 	//当StunTag的数量发生变化时调用.
 	void OnStunTagUpdate(const FGameplayTag Tag, int32 NewCount);
 
+	void OnFocusTagUpdate(const FGameplayTag Tag, int32 NewCount);
+
+	bool bIsFocusMode = false;
+
+	FORCEINLINE bool IsFocusMode() const { return bIsFocusMode; }
+
 	//检查身上是否有dead的Tag来判断是否死亡.
 	bool IsDead() const;
 

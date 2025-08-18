@@ -3,6 +3,8 @@
 
 #include "Framework/CrunchAssetManager.h"
 
+#include "Character/PawnData.h"
+
 UCrunchAssetManager& UCrunchAssetManager::Get()
 {
 	UCrunchAssetManager* Singleton = Cast<UCrunchAssetManager>(GEngine->AssetManager);
@@ -14,6 +16,26 @@ UCrunchAssetManager& UCrunchAssetManager::Get()
 	}
 
 	return *Singleton;
+}
+
+void UCrunchAssetManager::LoadPawnData(const FStreamableDelegate& LoadPawnDataCallback)
+{
+	LoadPrimaryAssetsWithType(UPawnData::GetPawnDataAssetType(), TArray<FName>(), LoadPawnDataCallback);
+}
+
+bool UCrunchAssetManager::GetLoadedPawnData(TArray<UPawnData*>& LoadedPawnData)
+{
+	TArray<UObject*> RefObjs;
+	bool bLoaded = GetPrimaryAssetObjectList(UPawnData::GetPawnDataAssetType(), RefObjs);
+	if (bLoaded)
+	{
+		LoadedPawnData.Empty(RefObjs.Num());
+		for (auto Obj : RefObjs)
+		{
+			LoadedPawnData.Add(Cast<UPawnData>(Obj));
+		}
+	}
+	return bLoaded;
 }
 
 void UCrunchAssetManager::LoadShopItems(const FStreamableDelegate& LoadFinishedCallback)

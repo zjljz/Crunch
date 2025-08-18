@@ -12,6 +12,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Crunch/Public/AbilitySystem/CrunchAbilitySystemStatics.h"
+#include "Widgets/AbilityToolTip.h"
 
 
 void UAbilityGauge::NativeConstruct()
@@ -27,18 +28,18 @@ void UAbilityGauge::NativeConstruct()
 		OwnerASC->AbilitySpecDirtiedCallbacks.AddUObject(this, &ThisClass::OnAbilitySpecUpdate);
 		OwnerASC->GetGameplayAttributeValueChangeDelegate(UCrunchHeroAttributeSet::GetUpgradePointAttribute()).AddUObject(this, &ThisClass::OnUpgradePointUpdate);
 		OwnerASC->GetGameplayAttributeValueChangeDelegate(UCrunchAttributeSet::GetManaAttribute()).AddUObject(this, &ThisClass::OnManaUpdate);
-	}
 
-	bool bFound = false;
-	float UpdatePoint = OwnerASC->GetGameplayAttributeValue(UCrunchHeroAttributeSet::GetUpgradePointAttribute(), bFound);
-	if (bFound)
-	{
-		FOnAttributeChangeData Data;
-		Data.NewValue = UpdatePoint;
-		Data.Attribute = UCrunchHeroAttributeSet::GetUpgradePointAttribute();
-		OnUpgradePointUpdate(Data);
+		bool bFound = false;
+		float UpdatePoint = OwnerASC->GetGameplayAttributeValue(UCrunchHeroAttributeSet::GetUpgradePointAttribute(), bFound);
+		if (bFound)
+		{
+			FOnAttributeChangeData Data;
+			Data.NewValue = UpdatePoint;
+			Data.Attribute = UCrunchHeroAttributeSet::GetUpgradePointAttribute();
+			OnUpgradePointUpdate(Data);
+		}
 	}
-
+	
 	WholeNumberFormattingOptions.MaximumFractionalDigits = 0;
 	TwoDigitNumberFormattingOptions.MaximumFractionalDigits = 2;
 }
@@ -68,6 +69,7 @@ void UAbilityGauge::ConfigureWithWidgetData(const FAbilityWidgetDataRow* Ability
 	if (Icon && AbilityWidgetData->Icon.ToSoftObjectPath().IsValid())
 	{
 		Icon->GetDynamicMaterial()->SetTextureParameterValue(IconMaterialParamName, AbilityWidgetData->Icon.LoadSynchronous());
+		CreateAbilityToolTip(AbilityWidgetData);
 	}
 }
 
@@ -128,15 +130,15 @@ void UAbilityGauge::UpdateCooldown()
 
 const FGameplayAbilitySpec* UAbilityGauge::GetAbilitySpec()
 {
-	if (!CachedAbilitySpec)
+	if (!OwnerASC || !AbilityCDO.Get()) return nullptr;
+
+	if (!CachedAbilitySpecHandle.IsValid())
 	{
-		if (AbilityCDO.Get() && OwnerASC)
-		{
-			CachedAbilitySpec = OwnerASC->FindAbilitySpecFromClass(AbilityCDO->GetClass());
-		}
+		FGameplayAbilitySpec* CachedAbilitySpec = OwnerASC->FindAbilitySpecFromClass(AbilityCDO->GetClass());
+		CachedAbilitySpecHandle = CachedAbilitySpec ? CachedAbilitySpec->Handle : FGameplayAbilitySpecHandle();
 	}
 
-	return CachedAbilitySpec;
+	return OwnerASC->FindAbilitySpecFromHandle(CachedAbilitySpecHandle);
 }
 
 void UAbilityGauge::OnAbilitySpecUpdate(const FGameplayAbilitySpec& NewSpec)
@@ -175,7 +177,7 @@ void UAbilityGauge::UpdateCanCast()
 void UAbilityGauge::OnUpgradePointUpdate(const FOnAttributeChangeData& Data)
 {
 	int Available = Data.NewValue > 0 ? 1 : 0;
-	
+
 	if (const FGameplayAbilitySpec* AbilitySpec = GetAbilitySpec())
 	{
 		if (UCrunchAbilitySystemStatics::IsAbilityAtMaxLevel(*AbilitySpec))
@@ -190,4 +192,18 @@ void UAbilityGauge::OnUpgradePointUpdate(const FOnAttributeChangeData& Data)
 void UAbilityGauge::OnManaUpdate(const FOnAttributeChangeData& Data)
 {
 	UpdateCanCast();
+}
+
+void UAbilityGauge::CreateAbilityToolTip(const FAbilityWidgetDataRow* AbilityWidgetData)
+{
+	if (!AbilityWidgetData || !AbilityToolTipClass) return;
+	
+	if (UAbilityToolTip* InstancedToolTip = CreateWidget<UAbilityToolTip>(GetOwningPlayer(), AbilityToolTipClass))
+	{
+		float CooldownDuration = UCrunchAbilitySystemStatics::GetCooldownDurationForAbility(AbilityCDO.Get());
+		float Cost = UCrunchAbilitySystemStatics::GetCostForAbility(AbilityCDO.Get());
+		
+		InstancedToolTip->SetAbilityInfo(AbilityWidgetData->AbilityName, AbilityWidgetData->Icon.LoadSynchronous(), AbilityWidgetData->Description, CooldownDuration, Cost);
+		SetToolTip(InstancedToolTip);
+	}
 }
