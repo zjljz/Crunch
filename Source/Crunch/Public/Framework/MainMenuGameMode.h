@@ -3,17 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Framework/CrunchGameMode.h"
-#include "LobbyGameMode.generated.h"
+#include "GameFramework/GameModeBase.h"
+#include "MainMenuGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class CRUNCH_API ALobbyGameMode : public ACrunchGameMode
+class CRUNCH_API AMainMenuGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-
-public:
-	ALobbyGameMode();
+	
+	
+	
+	
 };

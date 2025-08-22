@@ -6,8 +6,14 @@
 #include "EngineUtils.h"
 #include "Framework/StormCore.h"
 #include "GameFramework/PlayerStart.h"
+#include "Network/CrunchGameSession.h"
 #include "Player/CrunchPlayerController.h"
 #include "Player/CrunchPlayerState.h"
+
+ACrunchGameMode::ACrunchGameMode()
+{
+	GameSessionClass = ACrunchGameSession::StaticClass();
+}
 
 APlayerController* ACrunchGameMode::SpawnPlayerController(ENetRole InRemoteRole, const FString& Options)
 {

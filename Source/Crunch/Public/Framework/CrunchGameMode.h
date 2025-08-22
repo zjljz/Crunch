@@ -17,6 +17,8 @@ class CRUNCH_API ACrunchGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	ACrunchGameMode();
+	
 	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, const FString& Options) override;
 
 	virtual void StartPlay() override;

@@ -87,6 +87,6 @@ void UAbility_GroundBlast::OnTargetConfirmed(const FGameplayAbilityTargetDataHan
 
 void UAbility_GroundBlast::OnTargetCancelled(const FGameplayAbilityTargetDataHandle& Data)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Target Cancelled!"));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Target Cancelled!"));
 	K2_EndAbility();
 }

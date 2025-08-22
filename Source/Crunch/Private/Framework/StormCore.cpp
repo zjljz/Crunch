@@ -66,7 +66,7 @@ void AStormCore::Tick(float DeltaTime)
 	}
 }
 
-
+#if WITH_EDITOR
 void AStormCore::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -79,6 +79,7 @@ void AStormCore::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyCh
 		GroundDecalComp->DecalSize = FVector{DecalSize.X, InfluenceRadius, InfluenceRadius};
 	}
 }
+#endif
 
 float AStormCore::GetProgress() const
 {
@@ -150,10 +151,7 @@ void AStormCore::UpdateTeamWeight()
 		float TeamTotal = TeamOneInfluenceCount + TeamTwoInfluenceCount;
 		TeamWeight = TeamOffset / TeamTotal;
 	}
-
-	FString DebugStr = FString::Printf(TEXT("Team One Count : %d, Team Two Count : %d, Weight : %f"), TeamOneInfluenceCount, TeamTwoInfluenceCount, TeamWeight);
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, DebugStr);
-
+	
 	UpdateGoal();
 }
 

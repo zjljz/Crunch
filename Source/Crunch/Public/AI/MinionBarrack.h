@@ -8,6 +8,7 @@
 #include "MinionBarrack.generated.h"
 
 class AMinionCharacter;
+class APlayerStart;
 
 UCLASS()
 class CRUNCH_API AMinionBarrack : public AActor
