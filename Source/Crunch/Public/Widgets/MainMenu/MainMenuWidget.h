@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
+class USessionEntryWidget;
+class UScrollBox;
 class UEditableText;
 class FOnButtonClickedEvent;
 class UWaitingWidget;
@@ -43,6 +45,16 @@ private:
 	//当CreateSession时 WaitingWidget的Btn 绑定的取消CreateSession.
 	UFUNCTION()
 	void CancelSessionCreation();
+
+	void OnJoinSessionFailed();
+
+	//当寻找网络上的会话成功时 更新会话列表.
+	void UpdateLobbyList(const TArray<FOnlineSessionSearchResult>& SearchResults);
+
+	UFUNCTION()
+	void OnJoinSessionBtnClicked();
+
+	void OnSessionEntrySelected(const FString& SelectedEntryIdStr);
 	
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -68,4 +80,16 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEditableText> EditText_NewSessionName;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UScrollBox> SessionScrollBox;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> Btn_JoinSession;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Session")
+	TSubclassOf<USessionEntryWidget> SessionEntryWidgetClass;
+
+	//记录当前选择的SessionId.
+	FString CurSelectedSessionId = "";
 };

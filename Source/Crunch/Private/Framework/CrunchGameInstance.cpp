@@ -6,6 +6,7 @@
 #include "HttpModule.h"
 #include "OnlineSessionSettings.h"
 #include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Network/CrunchNetStatics.h"
@@ -101,7 +102,7 @@ void UCrunchGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSu
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("----- Session Create Falied And will Exit !------"))
+		UE_LOG(LogTemp, Warning, TEXT("----- Session Create Failed And will Exit !------"))
 		TerminateSessionServer();
 	}
 
@@ -250,6 +251,53 @@ void UCrunchGameInstance::RequestCreateAndJoinSession(const FName& NewSessionNam
 void UCrunchGameInstance::CancelSessionCreation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Cancel Create Session !"));
+	StopAllSessionFindings();
+
+	StartGlobalSessionSearch();
+}
+
+void UCrunchGameInstance::StartGlobalSessionSearch()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Start Global Session Search!"));
+
+	GetWorld()->GetTimerManager().SetTimer(GlobalSessionSearchHandle, this, &ThisClass::FindGlobalSessions, GlobalSessionSearchInterval, true, 0.f);
+}
+
+void UCrunchGameInstance::StartFindCreatedSession(const FGuid& SessionSearchId)
+{
+	if (!SessionSearchId.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Session Search Id is Invalid, Can't Start find session."))
+		return;
+	}
+
+	StopAllSessionFindings();
+
+	UE_LOG(LogTemp, Warning, TEXT("Start Find the Created Session with Id : %s"), *SessionSearchId.ToString());
+
+	GetWorld()->GetTimerManager().SetTimer(FindCreatedSessionTimerHandle, FTimerDelegate::CreateUObject(this, &ThisClass::FindCreatedSession, SessionSearchId),
+	                                       FindCreatedSessionSearchInterval, true, 0.f);
+
+	GetWorld()->GetTimerManager().SetTimer(FindCreatedSessionTimeOutHandle, this, &ThisClass::OnFindCreatedSessionTimeOut, FindCreatedSessionTimeOutDuration);
+}
+
+bool UCrunchGameInstance::JoinSessionWithId(const FString& SessionIdStr)
+{
+	if (SessionSearch.IsValid())
+	{
+		const FOnlineSessionSearchResult* Result = SessionSearch->SearchResults.FindByPredicate([=](const FOnlineSessionSearchResult& Cur)
+		{
+			return Cur.GetSessionIdStr() == SessionIdStr;
+		});
+
+		if (Result)
+		{
+			JoinSessionWithSearchResult(*Result);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void UCrunchGameInstance::OnCreateSessionRequestCompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectSuccessfully, FGuid SessionSearchId)
@@ -261,5 +309,230 @@ void UCrunchGameInstance::OnCreateSessionRequestCompleted(FHttpRequestPtr Reques
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Create Session Request Completed ~ ~ ~"));
+	}
+
+	int32 ResponseCode = Response->GetResponseCode();
+	if (ResponseCode != 200)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Session Creation Failed with code : %d"), ResponseCode);
+		return;
+	}
+
+	FString ResponseStr = Response->GetContentAsString();
+
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(ResponseStr);
+	int32 Port = 0;
+
+	if (FJsonSerializer::Deserialize(JsonReader, JsonObject) && JsonObject.IsValid())
+	{
+		Port = JsonObject->GetIntegerField(*UCrunchNetStatics::GetPortKey().ToString());
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Connected to Coordinator Successfully and the new Session created is on port : %d"), Port);
+	StartFindCreatedSession(SessionSearchId);
+}
+
+void UCrunchGameInstance::StopAllSessionFindings()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Stop All Session Search"));
+	StopFindCreatedSession();
+	StopGlobalSessionSearch();
+}
+
+void UCrunchGameInstance::StopFindCreatedSession()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Stop Find Created Session"));
+	GetWorld()->GetTimerManager().ClearTimer(FindCreatedSessionTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(FindCreatedSessionTimeOutHandle);
+
+	if (IOnlineSessionPtr SessionPtr = UCrunchNetStatics::GetSessionPtr())
+	{
+		SessionPtr->OnFindSessionsCompleteDelegates.RemoveAll(this);
+		SessionPtr->OnJoinSessionCompleteDelegates.RemoveAll(this);
+	}
+}
+
+void UCrunchGameInstance::StopGlobalSessionSearch()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Stop Global Session Search"));
+
+	if (GlobalSessionSearchHandle.IsValid())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(GlobalSessionSearchHandle);
+	}
+
+	if (IOnlineSessionPtr SessionPtr = UCrunchNetStatics::GetSessionPtr())
+	{
+		SessionPtr->OnFindSessionsCompleteDelegates.RemoveAll(this);
+	}
+}
+
+void UCrunchGameInstance::FindCreatedSession(FGuid SessionSearchId)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Try to find Created Session for SearchId : %s"), *SessionSearchId.ToString())
+
+	IOnlineSessionPtr SessionPtr = UCrunchNetStatics::GetSessionPtr();
+	if (!SessionPtr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't find Session Ptr,and Cancel Session Search"));
+		return;
+	}
+
+	SessionSearch = MakeShareable(new FOnlineSessionSearch);
+	if (!SessionSearch)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't Create Session Search, and Cancel Session Search"));
+		return;
+	}
+
+	SessionSearch->bIsLanQuery = false;
+	SessionSearch->MaxSearchResults = 1;
+	SessionSearch->QuerySettings.Set(UCrunchNetStatics::GetSessionSearchIdKey(), SessionSearchId.ToString(), EOnlineComparisonOp::Equals);
+
+	SessionPtr->OnFindSessionsCompleteDelegates.RemoveAll(this);
+	SessionPtr->OnFindSessionsCompleteDelegates.AddUObject(this, &ThisClass::OnFindCreatedSessionComplete);
+	if (!SessionPtr->FindSessions(0, SessionSearch.ToSharedRef()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Find Session Failed Right Away..."))
+		SessionPtr->OnFindSessionsCompleteDelegates.RemoveAll(this);
+	}
+}
+
+void UCrunchGameInstance::OnFindCreatedSessionTimeOut()
+{
+	UE_LOG(LogTemp, Error, TEXT("Try find Created Session time out ! ! !"))
+	StopFindCreatedSession();
+}
+
+void UCrunchGameInstance::OnFindCreatedSessionComplete(bool bWasSuccessful)
+{
+	if (!bWasSuccessful || SessionSearch->SearchResults.Num() == 0)
+	{
+		return;
+	}
+
+	StopFindCreatedSession();
+	JoinSessionWithSearchResult(SessionSearch->SearchResults[0]);
+}
+
+void UCrunchGameInstance::JoinSessionWithSearchResult(const FOnlineSessionSearchResult& SearchResult)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Join Session with SearchResult"));
+
+	IOnlineSessionPtr SessionPtr = UCrunchNetStatics::GetSessionPtr();
+	if (!SessionPtr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't Find Online Session Ptr"));
+		return;
+	}
+
+	FString SessionName = "";
+	SearchResult.Session.SessionSettings.Get<FString>(UCrunchNetStatics::GetSessionNameKey(), SessionName);
+
+	const FOnlineSessionSetting* PortSetting = SearchResult.Session.SessionSettings.Settings.Find(UCrunchNetStatics::GetPortKey());
+	int64 Port = 7777;
+	PortSetting->Data.GetValue(Port);
+
+	UE_LOG(LogTemp, Warning, TEXT("Trying to join session :%s, at port : %lld"), *SessionName, Port);
+
+	SessionPtr->OnJoinSessionCompleteDelegates.RemoveAll(this);
+	SessionPtr->OnJoinSessionCompleteDelegates.AddUObject(this, &ThisClass::OnJoinSessionComplete, (int)Port);
+	if (!SessionPtr->JoinSession(0, FName(SessionName), SearchResult))
+	{
+		SessionPtr->OnJoinSessionCompleteDelegates.RemoveAll(this);
+		UE_LOG(LogTemp, Error, TEXT("Join Session Failed Right Away !"));
+		OnJoinSessionFailed.Broadcast();
+	}
+}
+
+void UCrunchGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type JoinResult, int Port)
+{
+	IOnlineSessionPtr SessionPtr = UCrunchNetStatics::GetSessionPtr();
+	if (!SessionPtr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Join Session with no Session Ptr."))
+		OnJoinSessionFailed.Broadcast();
+		return;
+	}
+
+	if (JoinResult == EOnJoinSessionCompleteResult::Success)
+	{
+		StopAllSessionFindings();
+		UE_LOG(LogTemp, Warning, TEXT("Join Session : %s Successful, the port is : %d"), *SessionName.ToString(), Port);
+
+		FString TravelURL = "";
+		SessionPtr->GetResolvedConnectString(SessionName, TravelURL);
+
+		FString TestURL = UCrunchNetStatics::GetTestURL();
+		if (!TestURL.IsEmpty())
+		{
+			TravelURL = TestURL;
+		}
+
+		UCrunchNetStatics::ReplacePort(TravelURL, Port);
+
+		UE_LOG(LogTemp, Warning, TEXT("Traveling to Session at : %s"), *TravelURL);
+
+		GetFirstLocalPlayerController(GetWorld())->ClientTravel(TravelURL, TRAVEL_Absolute);
+	}
+	else
+	{
+		OnJoinSessionFailed.Broadcast();
+	}
+
+	SessionPtr->OnJoinSessionCompleteDelegates.RemoveAll(this);
+}
+
+void UCrunchGameInstance::FindGlobalSessions()
+{
+	UE_LOG(LogTemp, Warning, TEXT("------- Trying Find Global Session ---------"));
+
+	IOnlineSessionPtr SessionPtr = UCrunchNetStatics::GetSessionPtr();
+	if (!SessionPtr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't find Session Ptr, and Cancel Session Search"));
+		return;
+	}
+
+	SessionSearch = MakeShareable(new FOnlineSessionSearch);
+	SessionSearch->bIsLanQuery = false;
+	SessionSearch->MaxSearchResults = 20;
+
+	SessionPtr->OnFindSessionsCompleteDelegates.RemoveAll(this);
+	SessionPtr->OnFindSessionsCompleteDelegates.AddUObject(this, &ThisClass::OnFindGlobalSessionComplete);
+
+	if (!SessionPtr->FindSessions(0, SessionSearch.ToSharedRef()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Find Global Session failed right Away !"));
+		SessionPtr->OnFindSessionsCompleteDelegates.RemoveAll(this);
+	}
+}
+
+void UCrunchGameInstance::OnFindGlobalSessionComplete(bool bWasSuccessful)
+{
+	IOnlineSessionPtr SessionPtr = UCrunchNetStatics::GetSessionPtr();
+	if (!SessionPtr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't find Session Ptr when find global session completed"));
+		return;
+	}
+
+	SessionPtr->OnFindSessionsCompleteDelegates.RemoveAll(this);
+
+	if (bWasSuccessful)
+	{
+		OnFindGlobalSessionCompleted.Broadcast(SessionSearch->SearchResults);
+
+		for (const FOnlineSessionSearchResult& Result : SessionSearch->SearchResults)
+		{
+			FString SessionName = "Name_None";
+			Result.Session.SessionSettings.Get<FString>(UCrunchNetStatics::GetSessionNameKey(), SessionName);
+			UE_LOG(LogTemp, Warning, TEXT("Found Session : %s when Global Session Search."), *SessionName);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Sessions when Global Session Search ! ! !"));
 	}
 }

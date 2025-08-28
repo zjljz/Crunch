@@ -35,7 +35,7 @@ TArray<FHitResult> UCrunchGameplayAbility::GetHitResultsFromSweepLocationTargetD
 
 	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
 
-	for (const auto Data : TargetDataHandle.Data)
+	for (const auto& Data : TargetDataHandle.Data)
 	{
 		//虽然我们在AN_SendTargetGroup中 存入的是FGameplayAbilityTargetData_LocationInfo, 但是子类重写了父类函数 可以得到存入的结果.
 		FVector StartLoc = Data->GetOrigin().GetTranslation();

@@ -10,7 +10,7 @@ void UAbilityListView::ConfigureAbilities(const TMap<ECrunchAbilityInputID, TSub
 {
 	OnEntryWidgetGenerated().AddUObject(this, &ThisClass::AbilityGaugeGenerated);
 	
-	for (const TPair<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>> Pair : Abilities)
+	for (const TPair<ECrunchAbilityInputID, TSubclassOf<UGameplayAbility>>& Pair : Abilities)
 	{
 		AddItem(Pair.Value.GetDefaultObject());
 	}

@@ -13,6 +13,7 @@
 
 UAbility_Combo::UAbility_Combo()
 {
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	SetAssetTags(FGameplayTagContainer(CrunchGameplayTags::Ability_BasicAttack));
 	BlockAbilitiesWithTag.AddTag(CrunchGameplayTags::Ability_BasicAttack);
 }
@@ -57,6 +58,7 @@ void UAbility_Combo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		WaitComboDamageEventTask->ReadyForActivation();
 	}
 
+	NextComboName = NAME_None;
 	SetupWaitComboInputPress();
 }
 

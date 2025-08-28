@@ -2,10 +2,15 @@
 
 
 #include "Widgets/MainMenu/MainMenuWidget.h"
+
+#include "OnlineSessionSettings.h"
 #include "Framework/CrunchGameInstance.h"
 #include "Components/Button.h"
 #include "Components/EditableText.h"
+#include "Components/ScrollBox.h"
 #include "Components/WidgetSwitcher.h"
+#include "Network/CrunchNetStatics.h"
+#include "Widgets/MainMenu/SessionEntryWidget.h"
 #include "Widgets/MainMenu/WaitingWidget.h"
 
 
@@ -21,6 +26,10 @@ void UMainMenuWidget::NativeConstruct()
 		{
 			SwitchToMainMenuWidget();
 		}
+
+		CrunchGameInstance->OnJoinSessionFailed.AddUObject(this, &ThisClass::OnJoinSessionFailed);
+		CrunchGameInstance->OnFindGlobalSessionCompleted.AddUObject(this, &ThisClass::UpdateLobbyList);
+		CrunchGameInstance->StartGlobalSessionSearch();
 	}
 
 	if (Btn_Login)
@@ -32,8 +41,14 @@ void UMainMenuWidget::NativeConstruct()
 	{
 		Btn_CreateSession->OnClicked.AddDynamic(this, &ThisClass::OnCreateSessionBtnClicked);
 		Btn_CreateSession->SetIsEnabled(false);
-		
+
 		EditText_NewSessionName->OnTextChanged.AddDynamic(this, &ThisClass::OnNewSessionNameChanged);
+	}
+
+	if (Btn_JoinSession)
+	{
+		Btn_JoinSession->OnClicked.AddDynamic(this, &ThisClass::OnJoinSessionBtnClicked);
+		Btn_JoinSession->SetIsEnabled(false);
 	}
 }
 
@@ -98,4 +113,63 @@ void UMainMenuWidget::CancelSessionCreation()
 		CrunchGameInstance->CancelSessionCreation();
 	}
 	SwitchToMainMenuWidget();
+}
+
+void UMainMenuWidget::OnJoinSessionFailed()
+{
+	SwitchToMainMenuWidget();
+}
+
+void UMainMenuWidget::UpdateLobbyList(const TArray<FOnlineSessionSearchResult>& SearchResults)
+{
+	if (!IsValid(SessionEntryWidgetClass)) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Updating Lobby Session List For SearchResults !"));
+
+	SessionScrollBox->ClearChildren();
+	bool bCurSelectedSessionValid = false;
+	for (const FOnlineSessionSearchResult& Result : SearchResults)
+	{
+		if (USessionEntryWidget* NewEntry = CreateWidget<USessionEntryWidget>(GetOwningPlayer(), SessionEntryWidgetClass))
+		{
+			FString SessionName = "Name_None";
+			Result.Session.SessionSettings.Get<FString>(UCrunchNetStatics::GetSessionNameKey(), SessionName);
+
+			FString SessionIdStr = Result.Session.GetSessionIdStr();
+			NewEntry->InitializeEntry(SessionName, SessionIdStr);
+			NewEntry->OnSessionEntrySelected.AddUObject(this, &ThisClass::OnSessionEntrySelected);
+			SessionScrollBox->AddChild(NewEntry);
+
+			if (CurSelectedSessionId == SessionIdStr)
+			{
+				bCurSelectedSessionValid = true;
+			}
+		}
+	}
+
+	CurSelectedSessionId = bCurSelectedSessionValid ? CurSelectedSessionId : "";
+
+	Btn_JoinSession->SetIsEnabled(bCurSelectedSessionValid);
+}
+
+void UMainMenuWidget::OnJoinSessionBtnClicked()
+{
+	if (CrunchGameInstance && !CurSelectedSessionId.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Try Joining Session with Id : %s ! ! !"), *CurSelectedSessionId);
+
+		if (CrunchGameInstance->JoinSessionWithId(CurSelectedSessionId))
+		{
+			SwitchToWaitingWidget(FText::FromString("Joining"), false);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't Join Session with empty SessionId."))
+	}
+}
+
+void UMainMenuWidget::OnSessionEntrySelected(const FString& SelectedEntryIdStr)
+{
+	CurSelectedSessionId = SelectedEntryIdStr;
 }

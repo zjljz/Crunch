@@ -38,4 +38,9 @@ public:
 	static FName GetCoordinatorURLKey();
 	static FString GetCoordinatorURL();
 	static FString GetDefaultCoordinatorURL();
+
+	static FString GetTestURL();
+	static FName GetTestURLKey();
+
+	static void ReplacePort(FString& OutURLStr, int NewPort);
 };

@@ -128,3 +128,21 @@ FString UCrunchNetStatics::GetDefaultCoordinatorURL()
 	GConfig->GetString(TEXT("Crunch.Net"), TEXT("CoordinatorURL"), CoordinatorURL, GGameIni);
 	return CoordinatorURL;
 }
+
+FString UCrunchNetStatics::GetTestURL()
+{
+	FString TestURL = GetCommandLineArgAsString(GetTestURLKey());
+	return TestURL;
+}
+
+FName UCrunchNetStatics::GetTestURLKey()
+{
+	return FName("Test_URL");
+}
+
+void UCrunchNetStatics::ReplacePort(FString& OutURLStr, int NewPort)
+{
+	FURL URL(nullptr, *OutURLStr, TRAVEL_Absolute);
+	URL.Port = NewPort;
+	OutURLStr = URL.ToString();
+}

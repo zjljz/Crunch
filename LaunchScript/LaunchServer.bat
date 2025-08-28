@@ -3,6 +3,3 @@
 -server ^
 -log ^
 -epicapp="ServerClient" ^
--SESSION_NAME="TestSession" ^
--SESSION_SEARCH_ID="zjljzisgod" ^
--PORT=7779
